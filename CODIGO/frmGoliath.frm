@@ -1,0 +1,472 @@
+VERSION 5.00
+Begin VB.Form frmGoliath 
+   BackColor       =   &H00000000&
+   BorderStyle     =   0  'None
+   Caption         =   "Operación bancaria"
+   ClientHeight    =   7215
+   ClientLeft      =   0
+   ClientTop       =   -75
+   ClientWidth     =   8175
+   BeginProperty Font 
+      Name            =   "Tahoma"
+      Size            =   8.25
+      Charset         =   0
+      Weight          =   400
+      Underline       =   0   'False
+      Italic          =   0   'False
+      Strikethrough   =   0   'False
+   EndProperty
+   KeyPreview      =   -1  'True
+   LinkTopic       =   "Form1"
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
+   ScaleHeight     =   481
+   ScaleMode       =   3  'Pixel
+   ScaleWidth      =   545
+   ShowInTaskbar   =   0   'False
+   StartUpPosition =   2  'CenterScreen
+   Begin VB.Frame frameRetirar 
+      BackColor       =   &H80000007&
+      BorderStyle     =   0  'None
+      Height          =   3330
+      Left            =   600
+      TabIndex        =   0
+      Top             =   2100
+      Visible         =   0   'False
+      Width           =   2670
+      Begin VB.TextBox txtDatos 
+         Alignment       =   2  'Center
+         BackColor       =   &H00000000&
+         BorderStyle     =   0  'None
+         BeginProperty Font 
+            Name            =   "Tahoma"
+            Size            =   8.25
+            Charset         =   0
+            Weight          =   700
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H00FFFFFF&
+         Height          =   210
+         Left            =   825
+         MaxLength       =   30
+         TabIndex        =   3
+         Text            =   "0"
+         Top             =   1200
+         Width           =   975
+      End
+      Begin VB.TextBox txtname 
+         Alignment       =   2  'Center
+         BackColor       =   &H00000000&
+         BorderStyle     =   0  'None
+         BeginProperty Font 
+            Name            =   "Tahoma"
+            Size            =   9
+            Charset         =   0
+            Weight          =   700
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H00FFFFFF&
+         Height          =   255
+         Left            =   450
+         MaxLength       =   30
+         TabIndex        =   2
+         Top             =   2040
+         Visible         =   0   'False
+         Width           =   1815
+      End
+      Begin VB.Label lblDatos 
+         Alignment       =   2  'Center
+         BackStyle       =   0  'Transparent
+         BeginProperty Font 
+            Name            =   "Arial"
+            Size            =   6.75
+            Charset         =   0
+            Weight          =   400
+            Underline       =   0   'False
+            Italic          =   0   'False
+            Strikethrough   =   0   'False
+         EndProperty
+         ForeColor       =   &H00FFFFFF&
+         Height          =   255
+         Left            =   120
+         TabIndex        =   4
+         Top             =   3000
+         Visible         =   0   'False
+         Width           =   2415
+      End
+      Begin VB.Image cmdDepositAll 
+         Height          =   420
+         Left            =   375
+         Top             =   1960
+         Width           =   1980
+      End
+      Begin VB.Image cmdAceptar 
+         Height          =   420
+         Left            =   375
+         Tag             =   "0"
+         Top             =   2520
+         Width           =   1980
+      End
+      Begin VB.Image cmdMenos 
+         Height          =   315
+         Left            =   360
+         Tag             =   "0"
+         Top             =   1155
+         Width           =   315
+      End
+      Begin VB.Image cmdMas 
+         Height          =   315
+         Left            =   1980
+         Tag             =   "0"
+         Top             =   1140
+         Width           =   315
+      End
+      Begin VB.Image Image3 
+         Height          =   3330
+         Left            =   0
+         Tag             =   "0"
+         Top             =   0
+         Width           =   2670
+      End
+   End
+   Begin VB.Timer tmrNumber 
+      Enabled         =   0   'False
+      Interval        =   30
+      Left            =   0
+      Top             =   0
+   End
+   Begin VB.Image cmdCerrar 
+      Height          =   420
+      Left            =   7680
+      Top             =   0
+      Width           =   510
+   End
+   Begin VB.Image cmdTransferir 
+      Height          =   420
+      Left            =   5250
+      Top             =   6220
+      Width           =   1830
+   End
+   Begin VB.Image cmdBoveda 
+      Height          =   420
+      Left            =   4570
+      Top             =   5010
+      Width           =   1830
+   End
+   Begin VB.Image cmdDepositar 
+      Height          =   420
+      Left            =   3170
+      Top             =   6230
+      Width           =   1830
+   End
+   Begin VB.Image cmdRetirar 
+      Height          =   420
+      Left            =   1080
+      Top             =   6230
+      Width           =   1830
+   End
+   Begin VB.Label gold 
+      BackStyle       =   0  'Transparent
+      Caption         =   "0"
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   9.75
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H000080FF&
+      Height          =   255
+      Left            =   4440
+      TabIndex        =   1
+      Top             =   1300
+      Width           =   1095
+   End
+End
+Attribute VB_Name = "frmGoliath"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+'    Argentum 20 - Game Client Program
+'    Copyright (C) 2022 - Noland Studios
+'
+'    This program is free software: you can redistribute it and/or modify
+'    it under the terms of the GNU Affero General Public License as published by
+'    the Free Software Foundation, either version 3 of the License, or
+'    (at your option) any later version.
+'
+'    This program is distributed in the hope that it will be useful,
+'    but WITHOUT ANY WARRANTY; without even the implied warranty of
+'    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'    GNU Affero General Public License for more details.
+'    You should have received a copy of the GNU Affero General Public License
+'    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+'
+'
+'Respective portions copyrighted by contributors listed below.
+'
+'This library is free software; you can redistribute it and/or
+'modify it under the terms of the GNU Lesser General Public
+'License as published by the Free Software Foundation version 2.1 of
+'the License
+'
+'This library is distributed in the hope that it will be useful,
+'but WITHOUT ANY WARRANTY; without even the implied warranty of
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+'Lesser General Public License for more details.
+'
+'You should have received a copy of the GNU Lesser General Public
+'License along with this library; if not, write to the Free Software
+'Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+'Augusto José Rando (barrin@imperiumao.com.ar)
+'   - First Relase
+Option Explicit
+Private TipoOperacion    As Byte
+Private OroDep           As Long
+Private m_Number         As Integer
+Private m_Increment      As Integer
+Private m_Interval       As Integer
+Private cBotonBoveda     As clsGraphicalButton
+Private cBotonRetirar    As clsGraphicalButton
+Private cBotonDepositar  As clsGraphicalButton
+Private cBotonTransferir As clsGraphicalButton
+Private cBotonAceptar    As clsGraphicalButton
+Private cBotonCerrar     As clsGraphicalButton
+Private cBotonMas        As clsGraphicalButton
+Private cBotonMenos      As clsGraphicalButton
+Private cBotonDepositAll As clsGraphicalButton
+
+Public Sub ParseBancoInfo(ByVal oro As Long, ByVal Items As Byte)
+    On Error GoTo ParseBancoInfo_Err
+    OroDep = oro
+    gold.Caption = OroDep
+    txtDatos.BackColor = RGB(17, 18, 12)
+    gold.ForeColor = RGB(235, 164, 14)
+    lblDatos.ForeColor = RGB(235, 164, 14)
+    txtName.BackColor = RGB(17, 18, 12)
+    Me.Show vbModeless, GetGameplayForm()
+    Exit Sub
+ParseBancoInfo_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.ParseBancoInfo", Erl)
+    Resume Next
+End Sub
+
+Public Sub UpdateBankGld(ByVal oro As Long)
+    On Error GoTo ParseBancoInfo_Err
+    OroDep = oro
+    gold.Caption = OroDep
+    Exit Sub
+ParseBancoInfo_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.ParseBancoInfo", Erl)
+    Resume Next
+End Sub
+
+Private Sub Form_Load()
+    On Error GoTo Form_Load_Err
+    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call FormParser.Parse_Form(Me)
+    Me.Picture = LoadInterface("ventanabanco.bmp")
+    Call loadButtons
+    Exit Sub
+Form_Load_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.Form_Load", Erl)
+    Resume Next
+End Sub
+
+Private Sub loadButtons()
+    Set cBotonBoveda = New clsGraphicalButton
+    Set cBotonRetirar = New clsGraphicalButton
+    Set cBotonDepositar = New clsGraphicalButton
+    Set cBotonTransferir = New clsGraphicalButton
+    Set cBotonAceptar = New clsGraphicalButton
+    Set cBotonCerrar = New clsGraphicalButton
+    Set cBotonMas = New clsGraphicalButton
+    Set cBotonMenos = New clsGraphicalButton
+    Set cBotonDepositAll = New clsGraphicalButton
+    Call cBotonBoveda.Initialize(cmdBoveda, "boton-ver-boveda-default.bmp", "boton-ver-boveda-over.bmp", "boton-ver-boveda-off.bmp", Me)
+    Call cBotonRetirar.Initialize(cmdRetirar, "boton-retirar-default.bmp", "boton-retirar-over.bmp", "boton-retirar-off.bmp", Me)
+    Call cBotonDepositar.Initialize(cmdDepositar, "boton-depositar-default.bmp", "boton-depositar-over.bmp", "boton-depositar-off.bmp", Me)
+    Call cBotonTransferir.Initialize(cmdTransferir, "boton-transferir-default.bmp", "boton-transferir-over.bmp", "boton-transferir-off.bmp", Me)
+    Call cBotonAceptar.Initialize(cmdAceptar, "boton-aceptar-default.bmp", "boton-aceptar-over.bmp", "boton-aceptar-off.bmp", Me)
+    Call cBotonCerrar.Initialize(cmdCerrar, "boton-cerrar-default.bmp", "boton-cerrar-over.bmp", "boton-cerrar-off.bmp", Me)
+    Call cBotonMas.Initialize(cmdMas, "boton-sm-mas-default.bmp", "boton-sm-mas-over.bmp", "boton-sm-mas-off.bmp", Me)
+    Call cBotonMenos.Initialize(cmdMenos, "boton-sm-menos-default.bmp", "boton-sm-menos-over.bmp", "boton-sm-menos-off.bmp", Me)
+    Call cBotonDepositAll.Initialize(cmdDepositAll, "boton-depositartodo-default.bmp", "boton-depositartodo-over.bmp", "boton-depositartodo-off.bmp", Me)
+End Sub
+
+Private Sub Form_KeyPress(KeyAscii As Integer)
+    On Error GoTo Form_KeyPress_Err
+    If (KeyAscii = 27) Then
+        Unload Me
+    End If
+    Exit Sub
+Form_KeyPress_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.Form_KeyPress", Erl)
+    Resume Next
+End Sub
+
+Private Sub Form_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo Form_MouseDown_Err
+    frameRetirar.visible = False
+    Exit Sub
+Form_MouseDown_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.Form_MouseDown", Erl)
+    Resume Next
+End Sub
+
+Private Sub cmdDepositAll_Click()
+    If UserStats.GLD <= 0 Then
+        lblDatos.Caption = JsonLanguage.Item("MENSAJE_DEPOSITAR_NO_TIENES_ORO")
+        Exit Sub
+    End If
+    Call WriteBankDepositGold(UserStats.GLD)
+End Sub
+
+Private Sub cmdDepositar_Click()
+    txtDatos.text = ""
+    lblDatos.Caption = ""
+    lblDatos.visible = True
+    Image3.Picture = LoadInterface("ventanabanco-depositar.bmp")
+    frameRetirar.visible = True
+    txtName.visible = False
+    cmdDepositAll.visible = True
+    TipoOperacion = 1
+End Sub
+
+Private Sub cmdRetirar_Click()
+    txtDatos.text = ""
+    lblDatos.Caption = ""
+    lblDatos.visible = True
+    Image3.Picture = LoadInterface("ventanabanco-retirar.bmp")
+    frameRetirar.visible = True
+    txtName.visible = False
+    cmdDepositAll.visible = False
+    TipoOperacion = 2
+End Sub
+
+Private Sub cmdTransferir_Click()
+    txtDatos.text = ""
+    lblDatos.Caption = ""
+    lblDatos.visible = True
+    Image3.Picture = LoadInterface("ventanabanco-transferir.bmp")
+    frameRetirar.visible = True
+    txtName.visible = True
+    cmdDepositAll.visible = False
+    TipoOperacion = 3
+End Sub
+
+Private Sub cmdBoveda_Click()
+    Call WriteBankStart
+    Unload Me
+End Sub
+
+Private Sub cmdCerrar_Click()
+    Unload Me
+End Sub
+
+Private Sub cmdAceptar_Click()
+    Select Case TipoOperacion
+        Case 0
+            Unload Me
+        Case 1 'Depositar
+            'Negativos y ceros
+            If val(txtDatos.text) < 1 Then lblDatos.Caption = JsonLanguage.Item("MENSAJE_DEPOSITAR_CANTIDAD_INVALIDA")
+            If UserStats.GLD <= 0 Then
+                lblDatos.Caption = JsonLanguage.Item("MENSAJE_DEPOSITAR_NO_TIENES_ORO")
+                Exit Sub
+            End If
+            Call WriteBankDepositGold(min(val(txtDatos.text), UserStats.GLD))
+        Case 2 'Retirar
+            'Negativos y ceros
+            If val(txtDatos.text) < 1 Then lblDatos.Caption = JsonLanguage.Item("MENSAJE_DEPOSITAR_CANTIDAD_INVALIDA")
+            If OroDep <= 0 Then
+                lblDatos.Caption = JsonLanguage.Item("MENSAJE_RETIRAR_NO_TIENES_ORO")
+                Exit Sub
+            End If
+            Call WriteBankExtractGold(min(val(txtDatos.text), OroDep))
+        Case 3 'Transferir
+            'Negativos y ceros
+            If val(txtDatos.text) < 1 Then
+                lblDatos.Caption = JsonLanguage.Item("MENSAJE_DEPOSITAR_CANTIDAD_INVALIDA")
+                Exit Sub
+            End If
+            If OroDep <= 0 Then
+                lblDatos.Caption = JsonLanguage.Item("MENSAJE_RETIRAR_NO_TIENES_ORO")
+                Exit Sub
+            End If
+            If txtName.text <> "" Then
+                Call WriteTransFerGold(min(val(txtDatos.text), OroDep), txtName.text)
+                Unload Me
+            Else
+                lblDatos.Caption = JsonLanguage.Item("MENSAJE_TRANSFERIR_NOMBRE_INVALIDO")
+                txtDatos.text = ""
+            End If
+    End Select
+End Sub
+
+Private Sub cmdMas_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    m_Increment = 1
+    tmrNumber.Interval = 30
+    tmrNumber.enabled = True
+End Sub
+
+Private Sub cmdMenos_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    txtDatos.text = str((val(txtDatos.text) - 1))
+    m_Increment = -1
+    tmrNumber.Interval = 30
+    tmrNumber.enabled = True
+End Sub
+
+Private Sub cmdMas_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    tmrNumber.enabled = False
+End Sub
+
+Private Sub cmdMenos_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    tmrNumber.enabled = False
+End Sub
+
+Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    MoverForm Me.hWnd
+End Sub
+
+Private Sub tmrNumber_Timer()
+    On Error GoTo tmrNumber_Timer_Err
+    Const MIN_NUMBER = 1
+    Const MAX_NUMBER = 10000
+    txtDatos = txtDatos + m_Increment
+    If txtDatos < MIN_NUMBER Then
+        txtDatos = MIN_NUMBER
+    ElseIf txtDatos > MAX_NUMBER Then
+        txtDatos = MAX_NUMBER
+    End If
+    txtDatos.text = format$(txtDatos)
+    If m_Interval > 1 Then
+        m_Interval = m_Interval - 1
+        tmrNumber.Interval = m_Interval
+    End If
+    Exit Sub
+tmrNumber_Timer_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGoliath.tmrNumber_Timer", Erl)
+    Resume Next
+End Sub
+
+Private Sub txtname_KeyPress(KeyAscii As Integer)
+    If KeyAscii = 8 Then
+        Exit Sub
+    End If
+    If InStr(" abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", Chr(KeyAscii)) = 0 Then KeyAscii = 0
+End Sub
+
+Private Sub txtDatos_KeyPress(KeyAscii As Integer)
+    If KeyAscii = 8 Then
+        Exit Sub
+    End If
+    If InStr("0123456789", Chr(KeyAscii)) = 0 Then KeyAscii = 0
+End Sub

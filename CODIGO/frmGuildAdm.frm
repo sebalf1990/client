@@ -1,0 +1,229 @@
+VERSION 5.00
+Begin VB.Form frmGuildList 
+   BackColor       =   &H00000000&
+   BorderStyle     =   0  'None
+   Caption         =   "Lista de clanes registrados"
+   ClientHeight    =   5865
+   ClientLeft      =   0
+   ClientTop       =   -180
+   ClientWidth     =   6225
+   BeginProperty Font 
+      Name            =   "Tahoma"
+      Size            =   8.25
+      Charset         =   0
+      Weight          =   400
+      Underline       =   0   'False
+      Italic          =   0   'False
+      Strikethrough   =   0   'False
+   EndProperty
+   KeyPreview      =   -1  'True
+   LinkTopic       =   "Form1"
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
+   ScaleHeight     =   391
+   ScaleMode       =   3  'Pixel
+   ScaleWidth      =   415
+   ShowInTaskbar   =   0   'False
+   StartUpPosition =   1  'CenterOwner
+   Begin VB.TextBox Filtro 
+      BackColor       =   &H00000000&
+      BorderStyle     =   0  'None
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   255
+      Left            =   545
+      TabIndex        =   2
+      Top             =   1615
+      Width           =   1575
+   End
+   Begin VB.ListBox GuildsList 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      ForeColor       =   &H00FFFFFF&
+      Height          =   2565
+      ItemData        =   "frmGuildAdm.frx":0000
+      Left            =   495
+      List            =   "frmGuildAdm.frx":0002
+      TabIndex        =   1
+      Top             =   2160
+      Width           =   4080
+   End
+   Begin VB.ComboBox cmbAlignment 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   6.75
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   285
+      ItemData        =   "frmGuildAdm.frx":0004
+      Left            =   2280
+      List            =   "frmGuildAdm.frx":0006
+      Style           =   2  'Dropdown List
+      TabIndex        =   0
+      Top             =   1600
+      Width           =   1655
+   End
+   Begin VB.Image cmdCerrar 
+      Height          =   420
+      Left            =   5760
+      Top             =   0
+      Width           =   420
+   End
+   Begin VB.Image Image3 
+      Height          =   420
+      Left            =   4650
+      Tag             =   "0"
+      Top             =   4230
+      Width           =   390
+   End
+   Begin VB.Image cmdFundarClan 
+      Height          =   420
+      Left            =   2160
+      Tag             =   "0"
+      Top             =   5040
+      Width           =   1950
+   End
+   Begin VB.Image cmdBuscar 
+      Height          =   425
+      Left            =   4005
+      Tag             =   "0"
+      Top             =   1560
+      Width           =   450
+   End
+End
+Attribute VB_Name = "frmGuildList"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+'    Argentum 20 - Game Client Program
+'    Copyright (C) 2022 - Noland Studios
+'
+'    This program is free software: you can redistribute it and/or modify
+'    it under the terms of the GNU Affero General Public License as published by
+'    the Free Software Foundation, either version 3 of the License, or
+'    (at your option) any later version.
+'
+'    This program is distributed in the hope that it will be useful,
+'    but WITHOUT ANY WARRANTY; without even the implied warranty of
+'    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'    GNU Affero General Public License for more details.
+'    You should have received a copy of the GNU Affero General Public License
+'    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+'
+'
+Option Explicit
+Private cBotonFundarClan As clsGraphicalButton
+Private cBotonCerrar     As clsGraphicalButton
+Private cBotonBuscar     As clsGraphicalButton
+
+Private Sub cmdBuscar_Click()
+    On Error GoTo Image1_Click_Err
+    Dim i As Long
+    frmGuildList.GuildsList.Clear
+    If Not ListaClanes Then Exit Sub
+    If Len(Filtro.Text) <> 0 Then
+        For i = 0 To UBound(ClanesList)
+            If cmbAlignment.ListIndex < 5 Then
+                If ClanesList(i).Alineacion = cmbAlignment.ListIndex Then
+                    If InStr(1, UCase$(ClanesList(i).nombre), UCase$(Filtro.Text)) <> 0 Then
+                        Call frmGuildList.GuildsList.AddItem(ClanesList(i).nombre)
+                    End If
+                End If
+            ElseIf InStr(1, UCase$(ClanesList(i).nombre), UCase$(Filtro.Text)) <> 0 Then
+                Call frmGuildList.GuildsList.AddItem(ClanesList(i).nombre)
+            End If
+        Next i
+    Else
+        For i = 0 To UBound(ClanesList)
+            If cmbAlignment.ListIndex < 5 Then
+                If ClanesList(i).Alineacion = cmbAlignment.ListIndex Then
+                    Call frmGuildList.GuildsList.AddItem(ClanesList(i).nombre)
+                End If
+            Else
+                Call frmGuildList.GuildsList.AddItem(ClanesList(i).nombre)
+            End If
+        Next i
+    End If
+    Exit Sub
+Image1_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGuildList.Image1_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub cmdCerrar_Click()
+    Unload Me
+End Sub
+
+Private Sub cmdFundarClan_Click()
+    On Error GoTo cmdFundarClan_Click_Err
+    If UserStats.estado = 1 Then 'Muerto
+        With FontTypes(FontTypeNames.FONTTYPE_INFO)
+            Call ShowConsoleMsg(JsonLanguage.Item("MENSAJE_ESTAS_MUERTO"), .red, .green, .blue, .bold, .italic)
+        End With
+        Exit Sub
+    End If
+    Call WriteQuieroFundarClan
+    Exit Sub
+cmdFundarClan_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGuildList.cmdFundarClan_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Form_Load()
+    On Error GoTo Form_Load_Err
+    Call FormParser.Parse_Form(Me)
+    Me.Picture = LoadInterface("ventanaclanes.bmp")
+    Call loadButtons
+    Call cmbAlignment.AddItem(JsonLanguage.Item("COMBO_ALIGNMENT_NEUTRAL"))
+    Call cmbAlignment.AddItem(JsonLanguage.Item("MENSAJE_ESTADO_ARMADA"))
+    Call cmbAlignment.AddItem(JsonLanguage.Item("MENSAJE_ESTADO_CAOS"))
+    Call cmbAlignment.AddItem(JsonLanguage.Item("MENSAJE_ESTADO_CIUDADANO"))
+    Call cmbAlignment.AddItem(JsonLanguage.Item("MENSAJE_ESTADO_CRIMINAL"))
+    Call cmbAlignment.AddItem(JsonLanguage.Item("COMBO_ALIGNMENT_ALL"))
+    cmbAlignment.ListIndex = 5
+    Exit Sub
+Form_Load_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGuildList.Form_Load", Erl)
+    Resume Next
+End Sub
+
+Private Sub loadButtons()
+    Set cBotonCerrar = New clsGraphicalButton
+    Set cBotonFundarClan = New clsGraphicalButton
+    Set cBotonBuscar = New clsGraphicalButton
+    Call cBotonCerrar.Initialize(cmdCerrar, "boton-cerrar-default.bmp", "boton-cerrar-over.bmp", "boton-cerrar-off.bmp", Me)
+    Call cBotonBuscar.Initialize(cmdBuscar, "boton-buscar-default.bmp", "boton-buscar-over.bmp", "boton-buscar-off.bmp", Me)
+    Call cBotonFundarClan.Initialize(cmdFundarClan, "boton-fundar-clan-default.bmp", "boton-fundar-clan-over.bmp", "boton-fundar-clan-off.bmp", Me)
+End Sub
+
+Private Sub Image3_Click()
+    On Error GoTo Image3_Click_Err
+    'Si nos encontramos con un guild con nombre vacío algo sospechoso está pasando, x las dudas no hacemos nada.
+    If Len(GuildsList.List(GuildsList.ListIndex)) = 0 Then Exit Sub
+    frmGuildBrief.EsLeader = False
+    Call WriteGuildRequestDetails(GuildsList.List(GuildsList.ListIndex))
+    Exit Sub
+Image3_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmGuildList.Image3_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub lblClose_Click()
+    Unload Me
+End Sub

@@ -1,0 +1,721 @@
+VERSION 5.00
+Begin VB.Form frmHerrero 
+   BackColor       =   &H00000000&
+   BorderStyle     =   0  'None
+   Caption         =   "Trabajar con Herreria"
+   ClientHeight    =   6525
+   ClientLeft      =   0
+   ClientTop       =   -90
+   ClientWidth     =   7050
+   LinkTopic       =   "Form1"
+   MaxButton       =   0   'False
+   MinButton       =   0   'False
+   ScaleHeight     =   435
+   ScaleMode       =   3  'Pixel
+   ScaleWidth      =   470
+   ShowInTaskbar   =   0   'False
+   StartUpPosition =   1  'CenterOwner
+   Begin VB.ListBox List2 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   1200
+      Left            =   5760
+      TabIndex        =   5
+      Top             =   2520
+      Width           =   645
+   End
+   Begin VB.ListBox lstArmas 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   2760
+      Left            =   480
+      TabIndex        =   4
+      Top             =   2325
+      Width           =   2775
+   End
+   Begin VB.ListBox List1 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   1200
+      Left            =   3840
+      TabIndex        =   3
+      Top             =   2520
+      Width           =   1845
+   End
+   Begin VB.TextBox cantidad 
+      Alignment       =   2  'Center
+      Appearance      =   0  'Flat
+      BackColor       =   &H000D1213&
+      BorderStyle     =   0  'None
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   9
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   250
+      Left            =   5265
+      MaxLength       =   3
+      TabIndex        =   2
+      Text            =   "1"
+      Top             =   4275
+      Width           =   540
+   End
+   Begin VB.PictureBox Picture1 
+      Appearance      =   0  'Flat
+      BackColor       =   &H00000000&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H00FFFFFF&
+      Height          =   465
+      Left            =   4890
+      ScaleHeight     =   32
+      ScaleMode       =   0  'User
+      ScaleWidth      =   32
+      TabIndex        =   0
+      Top             =   1845
+      Width           =   480
+   End
+   Begin VB.Image Command5 
+      Height          =   510
+      Left            =   2850
+      Stretch         =   -1  'True
+      Top             =   1395
+      Width           =   510
+   End
+   Begin VB.Image cmdMenos 
+      Height          =   315
+      Left            =   4740
+      Tag             =   "0"
+      Top             =   4215
+      Width           =   315
+   End
+   Begin VB.Image cmdMas 
+      Height          =   315
+      Left            =   6000
+      Tag             =   "0"
+      Top             =   4215
+      Width           =   315
+   End
+   Begin VB.Image cmdCerrar 
+      Height          =   420
+      Left            =   6600
+      Top             =   0
+      Width           =   420
+   End
+   Begin VB.Label desc 
+      Alignment       =   2  'Center
+      BackStyle       =   0  'Transparent
+      BeginProperty Font 
+         Name            =   "Tahoma"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H00FFFFFF&
+      Height          =   255
+      Left            =   3840
+      TabIndex        =   1
+      Top             =   3900
+      Width           =   2535
+   End
+   Begin VB.Image cmdConstruir 
+      Height          =   420
+      Left            =   4155
+      Top             =   4680
+      Width           =   1980
+   End
+   Begin VB.Image cmdAceptar 
+      Height          =   420
+      Left            =   2535
+      Top             =   5730
+      Width           =   1980
+   End
+   Begin VB.Image Command2 
+      Height          =   540
+      Left            =   2250
+      Stretch         =   -1  'True
+      Top             =   1350
+      Width           =   510
+   End
+   Begin VB.Image Command1 
+      Height          =   510
+      Left            =   1605
+      OLEDropMode     =   1  'Manual
+      Top             =   1350
+      Width           =   450
+   End
+   Begin VB.Image Command4 
+      Height          =   510
+      Left            =   1050
+      Tag             =   "0"
+      Top             =   1365
+      Width           =   450
+   End
+   Begin VB.Image Command3 
+      Height          =   510
+      Left            =   360
+      Top             =   1350
+      Width           =   450
+   End
+End
+Attribute VB_Name = "frmHerrero"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+'    Argentum 20 - Game Client Program
+'    Copyright (C) 2022 - Noland Studios
+'
+'    This program is free software: you can redistribute it and/or modify
+'    it under the terms of the GNU Affero General Public License as published by
+'    the Free Software Foundation, either version 3 of the License, or
+'    (at your option) any later version.
+'
+'    This program is distributed in the hope that it will be useful,
+'    but WITHOUT ANY WARRANTY; without even the implied warranty of
+'    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'    GNU Affero General Public License for more details.
+'    You should have received a copy of the GNU Affero General Public License
+'    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+'
+'
+'Argentum Online 0.11.6
+'
+'Copyright (C) 2002 Márquez Pablo Ignacio
+'Copyright (C) 2002 Otto Perez
+'Copyright (C) 2002 Aaron Perkins
+'Copyright (C) 2002 Matías Fernando Pequeño
+'
+'This program is free software; you can redistribute it and/or modify
+'it under the terms of the Affero General Public License;
+'either version 1 of the License, or any later version.
+'
+'This program is distributed in the hope that it will be useful,
+'but WITHOUT ANY WARRANTY; without even the implied warranty of
+'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+'Affero General Public License for more details.
+'
+'You should have received a copy of the Affero General Public License
+'along with this program; if not, you can find it at http://www.affero.org/oagpl.html
+'
+'Argentum Online is based on Baronsoft's VB6 Online RPG
+'You can contact the original creator of ORE at aaron@baronsoft.com
+'for more information about ORE please visit http://www.baronsoft.com/
+'You can contact me at:
+'morgolock@speedy.com.ar
+'www.geocities.com/gmorgolock
+'Calle 3 número 983 piso 7 dto A
+'La Plata - Pcia, Buenos Aires - Republica Argentina
+'Código Postal 1900
+'Pablo Ignacio Márquez
+Dim Index As Byte
+Option Explicit
+Private cBotonAceptar   As clsGraphicalButton
+Private cBotonConstruir As clsGraphicalButton
+Private cBotonCerrar    As clsGraphicalButton
+Private cBotonMas       As clsGraphicalButton
+Private cBotonMenos     As clsGraphicalButton
+
+Private Sub cmdCerrar_Click()
+    Unload Me
+End Sub
+
+Private Sub Form_Load()
+    On Error GoTo Form_Load_Err
+    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call FormParser.Parse_Form(Me)
+    Me.Picture = LoadInterface("VentanaHerreria.bmp")
+    Call loadButtons
+    Index = 3
+    Exit Sub
+Form_Load_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Form_Load", Erl)
+    Resume Next
+End Sub
+
+Private Sub loadButtons()
+    Set cBotonAceptar = New clsGraphicalButton
+    Set cBotonConstruir = New clsGraphicalButton
+    Set cBotonCerrar = New clsGraphicalButton
+    Set cBotonMas = New clsGraphicalButton
+    Set cBotonMenos = New clsGraphicalButton
+    Call cBotonAceptar.Initialize(cmdAceptar, "boton-aceptar-default.bmp", "boton-aceptar-over.bmp", "boton-aceptar-off.bmp", Me)
+    Call cBotonConstruir.Initialize(cmdConstruir, "boton-construir-default.bmp", "boton-construir-over.bmp", "boton-construir-off.bmp", Me)
+    Call cBotonCerrar.Initialize(cmdCerrar, "boton-cerrar-default.bmp", "boton-cerrar-over.bmp", "boton-cerrar-off.bmp", Me)
+    Call cBotonMas.Initialize(cmdMas, "boton-sm-mas-default.bmp", "boton-sm-mas-over.bmp", "boton-sm-mas-off.bmp", Me)
+    Call cBotonMenos.Initialize(cmdMenos, "boton-sm-menos-default.bmp", "boton-sm-menos-over.bmp", "boton-sm-menos-off.bmp", Me)
+End Sub
+
+Private Sub Command1_Click()
+    On Error GoTo Command1_Click_Err
+    Index = 1
+    Dim i As Byte
+    lstArmas.Clear
+    For i = 1 To UBound(ArmasHerrero())
+        If ArmasHerrero(i).Index = 0 Then Exit For
+        Call frmHerrero.lstArmas.AddItem(ObjData(ArmasHerrero(i).Index).Name)
+    Next i
+    Command1.Picture = LoadInterface("boton-espada-over.bmp")
+    Command3.Picture = Nothing
+    Command2.Picture = Nothing
+    Command4.Picture = Nothing
+    Command5.Picture = Nothing
+    Exit Sub
+Command1_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Command1_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub command1_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Index <> 1 Then Command1.Picture = LoadInterface("boton-espada-off.bmp")
+End Sub
+
+Private Sub Command2_Click()
+    On Error GoTo Command2_Click_Err
+    Index = 2
+    Dim i As Byte
+    lstArmas.Clear
+    For i = 0 To UBound(ArmadurasHerrero())
+        If ArmadurasHerrero(i).Index = 0 Then Exit For
+        If ObjData(ArmadurasHerrero(i).Index).ObjType = 3 Then
+            Call frmHerrero.lstArmas.AddItem(ObjData(ArmadurasHerrero(i).Index).Name)
+        End If
+    Next i
+    Command2.Picture = LoadInterface("boton-armadura-over.bmp")
+    Command1.Picture = Nothing
+    Command3.Picture = Nothing
+    Command4.Picture = Nothing
+    Command5.Picture = Nothing
+    Exit Sub
+Command2_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Command2_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Command2_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Index <> 2 Then Command2.Picture = LoadInterface("boton-armadura-off.bmp")
+End Sub
+
+Private Sub Command3_Click()
+    On Error GoTo Command3_Click_Err
+    Index = 3
+    lstArmas.Clear
+    Dim i As Byte
+    For i = 0 To UBound(CascosHerrero())
+        If CascosHerrero(i).Index = 0 Then Exit For
+        Call frmHerrero.lstArmas.AddItem(ObjData(CascosHerrero(i).Index).Name)
+    Next i
+    Command3.Picture = LoadInterface("boton-casco-over.bmp")
+    Command1.Picture = Nothing
+    Command2.Picture = Nothing
+    Command4.Picture = Nothing
+    Command5.Picture = Nothing
+    Exit Sub
+Command3_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Command3_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Command3_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Index <> 3 Then Command3.Picture = LoadInterface("boton-casco-off.bmp")
+End Sub
+
+Private Sub Command4_Click()
+    On Error GoTo Command4_Click_Err
+    Index = 4
+    lstArmas.Clear
+    Dim i As Byte
+    For i = 0 To UBound(EscudosHerrero())
+        If EscudosHerrero(i).Index = 0 Then Exit For
+        Call frmHerrero.lstArmas.AddItem(ObjData(EscudosHerrero(i).Index).Name)
+    Next i
+    Command4.Picture = LoadInterface("boton-escudo-over.bmp")
+    Command1.Picture = Nothing
+    Command2.Picture = Nothing
+    Command3.Picture = Nothing
+    Command5.Picture = Nothing
+    Exit Sub
+Command4_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Command4_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Command4_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Index <> 4 Then Command4.Picture = LoadInterface("boton-escudo-off.bmp")
+End Sub
+
+Private Sub Command5_Click()
+    On Error GoTo Command5_Click_Err
+    Index = 5
+    lstArmas.Clear
+    Dim i As Byte
+    For i = 1 To UBound(RunasElementalesHerrero())
+        If RunasElementalesHerrero(i).Index = 0 Then Exit For
+        Call frmHerrero.lstArmas.AddItem(ObjData(RunasElementalesHerrero(i).Index).Name)
+    Next i
+    Command5.Picture = LoadInterface("boton-runas-over.bmp")
+    Command1.Picture = Nothing
+    Command2.Picture = Nothing
+    Command3.Picture = Nothing
+    Command4.Picture = Nothing
+    Exit Sub
+Command5_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Command5_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Command5_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    If Index <> 5 Then Command5.Picture = LoadInterface("boton-escudo-off.bmp")
+End Sub
+
+Private Sub cmdAceptar_Click()
+    On Error GoTo cmdAceptar_Click_Err
+    Unload Me
+    Exit Sub
+cmdAceptar_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.cmdAceptar_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub cmdMenos_Click()
+    If cantidad > 0 Then
+        cantidad = cantidad - 1
+    Else
+        Exit Sub
+    End If
+End Sub
+
+Private Sub cmdMas_Click()
+    If cantidad <= 9999 Then
+        cantidad = cantidad + 1
+    Else
+        Exit Sub
+    End If
+End Sub
+
+Private Sub cmdConstruir_Click()
+    On Error GoTo cmdConstruir_Click_Err
+    Select Case Index
+        Case 1
+            If cantidad > 1 Then
+                UserMacro.cantidad = cantidad
+                UserMacro.TIPO = 4
+                UserMacro.Index = ArmasHerrero(lstArmas.ListIndex + 1).Index
+                AddtoRichTextBox frmMain.RecTxt, JsonLanguage.Item("MENSAJE_COMIENZAS_A_TRABAJAR."), 2, 51, 223, 1, 1
+                UserMacro.Intervalo = gIntervals.BuildWork
+                UserMacro.Activado = True
+                frmMain.MacroLadder.Interval = gIntervals.BuildWork
+                frmMain.MacroLadder.enabled = True
+            Else
+                Call WriteCraftBlacksmith(ArmasHerrero(lstArmas.ListIndex + 1).Index)
+                If frmMain.macrotrabajo.enabled Then MacroBltIndex = ArmasHerrero(lstArmas.ListIndex + 1).Index
+            End If
+        Case 2
+            If cantidad > 1 Then
+                UserMacro.cantidad = cantidad
+                UserMacro.TIPO = 4
+                UserMacro.Index = ArmadurasHerrero(lstArmas.ListIndex).Index
+                AddtoRichTextBox frmMain.RecTxt, JsonLanguage.Item("MENSAJE_COMIENZAS_A_TRABAJAR"), 2, 51, 223, 1, 1
+                UserMacro.Intervalo = gIntervals.BuildWork
+                UserMacro.Activado = True
+                frmMain.MacroLadder.Interval = gIntervals.BuildWork
+                frmMain.MacroLadder.enabled = True
+            Else
+                Call WriteCraftBlacksmith(ArmadurasHerrero(lstArmas.ListIndex).Index)
+                If frmMain.macrotrabajo.enabled Then MacroBltIndex = ArmadurasHerrero(lstArmas.ListIndex).Index
+            End If
+        Case 3
+            If cantidad > 1 Then
+                UserMacro.cantidad = cantidad
+                UserMacro.TIPO = 4
+                UserMacro.Index = CascosHerrero(lstArmas.ListIndex).Index
+                AddtoRichTextBox frmMain.RecTxt, JsonLanguage.Item("MENSAJE_COMIENZAS_A_TRABAJAR."), 2, 51, 223, 1, 1
+                UserMacro.Intervalo = gIntervals.BuildWork
+                UserMacro.Activado = True
+                frmMain.MacroLadder.Interval = gIntervals.BuildWork
+                frmMain.MacroLadder.enabled = True
+            Else
+                Call WriteCraftBlacksmith(CascosHerrero(lstArmas.ListIndex).Index)
+                If frmMain.macrotrabajo.enabled Then MacroBltIndex = CascosHerrero(lstArmas.ListIndex).Index
+            End If
+        Case 4
+            If cantidad > 1 Then
+                UserMacro.cantidad = cantidad
+                UserMacro.TIPO = 4
+                UserMacro.Index = EscudosHerrero(lstArmas.ListIndex).Index
+                AddtoRichTextBox frmMain.RecTxt, JsonLanguage.Item("MENSAJE_COMIENZAS_A_TRABAJAR"), 2, 51, 223, 1, 1
+                UserMacro.Intervalo = gIntervals.BuildWork
+                UserMacro.Activado = True
+                frmMain.MacroLadder.Interval = gIntervals.BuildWork
+                frmMain.MacroLadder.enabled = True
+            Else
+                Call WriteCraftBlacksmith(EscudosHerrero(lstArmas.ListIndex).Index)
+                If frmMain.macrotrabajo.enabled Then MacroBltIndex = EscudosHerrero(lstArmas.ListIndex).Index
+            End If
+        Case 5
+            If cantidad > 1 Then
+                UserMacro.cantidad = cantidad
+                UserMacro.TIPO = 4
+                UserMacro.Index = RunasElementalesHerrero(lstArmas.ListIndex + 1).Index
+                AddtoRichTextBox frmMain.RecTxt, JsonLanguage.Item("MENSAJE_COMIENZAS_A_TRABAJAR"), 2, 51, 223, 1, 1
+                UserMacro.Intervalo = gIntervals.BuildWork
+                UserMacro.Activado = True
+                frmMain.MacroLadder.Interval = gIntervals.BuildWork
+                frmMain.MacroLadder.enabled = True
+            Else
+                Call WriteCraftBlacksmith(RunasElementalesHerrero(lstArmas.ListIndex + 1).Index)
+                If frmMain.macrotrabajo.enabled Then MacroBltIndex = EscudosHerrero(lstArmas.ListIndex).Index
+            End If
+        Case Else
+    End Select
+    Unload Me
+    Exit Sub
+cmdConstruir_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.cmdConstruir_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub Form_KeyPress(KeyAscii As Integer)
+    On Error GoTo Form_KeyPress_Err
+    If (KeyAscii = 27) Then
+        Unload Me
+    End If
+    Exit Sub
+Form_KeyPress_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.Form_KeyPress", Erl)
+    Resume Next
+End Sub
+
+Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    MoverForm Me.hWnd
+End Sub
+
+Private Sub List1_Click()
+    On Error GoTo List1_Click_Err
+    Dim SR As Rect, DR As Rect
+    SR.Left = 0
+    SR.Top = 0
+    SR.Right = 32
+    SR.Bottom = 32
+    DR.Left = 0
+    DR.Top = 0
+    DR.Right = 32
+    DR.Bottom = 32
+    Dim Grh As Long
+    If List1.ListIndex = 0 Then
+        Grh = 724
+    ElseIf List1.ListIndex = 1 Then
+        Grh = 725
+    ElseIf List1.ListIndex = 2 Then
+        Grh = 723
+    End If
+    Call Grh_Render_To_Hdc(picture1, Grh, 0, 0, False)
+    Exit Sub
+List1_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.List1_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub lstArmas_Click()
+    On Error GoTo lstArmas_Click_Err
+    Dim SR As Rect, DR As Rect
+    SR.Left = 0
+    SR.Top = 0
+    SR.Right = 32
+    SR.Bottom = 32
+    DR.Left = 0
+    DR.Top = 0
+    DR.Right = 32
+    DR.Bottom = 32
+    List1.Clear
+    List2.Clear
+    Dim i          As Integer
+    Dim tmpTexts() As String
+    Select Case Index
+        Case 1
+            tmpTexts = AddMaterialNames((ArmasHerrero(lstArmas.ListIndex + 1).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List1.AddItem tmpTexts(i)
+                End If
+            Next i
+            Call Grh_Render_To_Hdc(picture1, ObjData(ArmasHerrero(lstArmas.ListIndex + 1).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialValues((ArmasHerrero(lstArmas.ListIndex + 1).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List2.AddItem tmpTexts(i)
+                End If
+            Next i
+            desc.Caption = "Golpe: " & ObjData(ArmasHerrero(lstArmas.ListIndex + 1).Index).MinHit & "/" & ObjData(ArmasHerrero(lstArmas.ListIndex).Index).MaxHit
+        Case 2
+            Call Grh_Render_To_Hdc(picture1, ObjData(ArmadurasHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialNames((ArmadurasHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List1.AddItem tmpTexts(i)
+                End If
+            Next i
+            Call Grh_Render_To_Hdc(picture1, ObjData(ArmadurasHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialValues((ArmadurasHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List2.AddItem tmpTexts(i)
+                End If
+            Next i
+            desc.Caption = "Defensa: " & ObjData(ArmadurasHerrero(lstArmas.ListIndex).Index).MinDef & "/" & ObjData(ArmadurasHerrero(lstArmas.ListIndex).Index).MaxDef
+        Case 3
+            Call Grh_Render_To_Hdc(picture1, ObjData(CascosHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialNames((CascosHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List1.AddItem tmpTexts(i)
+                End If
+            Next i
+            Call Grh_Render_To_Hdc(picture1, ObjData(CascosHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialValues((CascosHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List2.AddItem tmpTexts(i)
+                End If
+            Next i
+            desc.Caption = "Defensa: " & ObjData(CascosHerrero(lstArmas.ListIndex).Index).MinDef & "/" & ObjData(CascosHerrero(lstArmas.ListIndex).Index).MaxDef
+        Case 4
+            Call Grh_Render_To_Hdc(picture1, ObjData(EscudosHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialNames((EscudosHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List1.AddItem tmpTexts(i)
+                End If
+            Next i
+            Call Grh_Render_To_Hdc(picture1, ObjData(EscudosHerrero(lstArmas.ListIndex).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialValues((EscudosHerrero(lstArmas.ListIndex).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List2.AddItem tmpTexts(i)
+                End If
+            Next i
+            desc.Caption = "Defensa: " & ObjData(EscudosHerrero(lstArmas.ListIndex).Index).MinDef & "/" & ObjData(EscudosHerrero(lstArmas.ListIndex).Index).MaxDef
+        Case 5
+            Call Grh_Render_To_Hdc(picture1, ObjData(RunasElementalesHerrero(lstArmas.ListIndex + 1).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialNames((RunasElementalesHerrero(lstArmas.ListIndex + 1).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List1.AddItem tmpTexts(i)
+                End If
+            Next i
+            Call Grh_Render_To_Hdc(picture1, ObjData(RunasElementalesHerrero(lstArmas.ListIndex + 1).Index).GrhIndex, 0, 0)
+            tmpTexts = AddMaterialValues((RunasElementalesHerrero(lstArmas.ListIndex + 1).Index))
+            For i = LBound(tmpTexts) To UBound(tmpTexts)
+                If Len(tmpTexts(i)) > 0 Then
+                    List2.AddItem tmpTexts(i)
+                End If
+            Next i
+        Case Else
+    End Select
+    picture1.visible = True
+    Exit Sub
+lstArmas_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmHerrero.lstArmas_Click", Erl)
+    Resume Next
+End Sub
+
+Public Function AddMaterialNames(ByVal objectIndex As Integer) As String()
+    Dim Result(1 To 9) As String
+    If ObjData(objectIndex).LingH > 0 Then
+        Result(1) = CStr(JsonLanguage.Item("MENSAJE_LINGOTE_DE_HIERRO"))
+    End If
+    If ObjData(objectIndex).LingP > 0 Then
+        Result(2) = CStr(JsonLanguage.Item("MENSAJE_LINGOTE_DE_PLATA"))
+    End If
+    If ObjData(objectIndex).LingO > 0 Then
+        Result(3) = CStr(JsonLanguage.Item("MENSAJE_LINGOTE_DE_ORO"))
+    End If
+    If ObjData(objectIndex).Coal > 0 Then
+        Result(4) = CStr(JsonLanguage.Item("MENSAJE_CARBON"))
+    End If
+    If ObjData(objectIndex).Blodium > 0 Then
+        Result(5) = "Blodium"
+    End If
+    If ObjData(objectIndex).FireEssence > 0 Then
+        Result(6) = CStr(JsonLanguage.Item("MENSAJE_ESENCIA_DE_FUEGO"))
+    End If
+    If ObjData(objectIndex).WaterEssence > 0 Then
+        Result(7) = CStr(JsonLanguage.Item("MENSAJE_ESENCIA_DE_AGUA"))
+    End If
+    If ObjData(objectIndex).EarthEssence > 0 Then
+        Result(8) = CStr(JsonLanguage.Item("MENSAJE_ESENCIA_DE_TIERRA"))
+    End If
+    If ObjData(objectIndex).WindEssence > 0 Then
+        Result(9) = CStr(JsonLanguage.Item("MENSAJE_ESENCIA_DE_AIRE"))
+    End If
+    AddMaterialNames = Result
+End Function
+
+Public Function AddMaterialValues(ByVal objectIndex As Integer) As String()
+    Dim Result(1 To 9) As String
+    If ObjData(objectIndex).LingH > 0 Then
+        Result(1) = ObjData(objectIndex).LingH
+    End If
+    If ObjData(objectIndex).LingP > 0 Then
+        Result(2) = ObjData(objectIndex).LingP
+    End If
+    If ObjData(objectIndex).LingO > 0 Then
+        Result(3) = ObjData(objectIndex).LingO
+    End If
+    If ObjData(objectIndex).Coal > 0 Then
+        Result(4) = ObjData(objectIndex).Coal
+    End If
+    If ObjData(objectIndex).Blodium > 0 Then
+        Result(5) = ObjData(objectIndex).Blodium
+    End If
+    If ObjData(objectIndex).FireEssence > 0 Then
+        Result(6) = ObjData(objectIndex).FireEssence
+    End If
+    If ObjData(objectIndex).WaterEssence > 0 Then
+        Result(7) = ObjData(objectIndex).WaterEssence
+    End If
+    If ObjData(objectIndex).EarthEssence > 0 Then
+        Result(8) = ObjData(objectIndex).EarthEssence
+    End If
+    If ObjData(objectIndex).WindEssence > 0 Then
+        Result(9) = ObjData(objectIndex).WindEssence
+    End If
+    AddMaterialValues = Result
+End Function
