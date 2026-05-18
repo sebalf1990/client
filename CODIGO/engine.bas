@@ -776,7 +776,30 @@ Public Sub render()
                 Call RGBAList(temp_array, 230, 0, 0)
             End If
             PosY = PosY + 15
-            Call Engine_Text_Render(JsonLanguage.Item("MENSAJE_542") & CLng(DrogaCounter) & "s", PosX, PosY, temp_array, 1, True, 0, 160)
+            If IsSet(FeatureToggles, eBuffTimerAsCircle) And DrogaCounterMax > 0 Then
+                Const BUFF_CIRCLE_RADIUS As Integer = 14
+                Const BUFF_CIRCLE_BORDER As Integer = 2
+                Dim buffAngle As Single
+                buffAngle = (CSng(DrogaCounter) / CSng(DrogaCounterMax)) * 360
+                If buffAngle > 360 Then buffAngle = 360
+                Dim buffCx As Integer
+                Dim buffCy As Integer
+                buffCx = PosX + 40
+                buffCy = PosY + 30
+                Dim border_array(3) As RGBA
+                Call RGBAList(border_array, 0, 0, 0, 220)
+                Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS + BUFF_CIRCLE_BORDER, border_array(0), 360)
+                Dim bg_array(3) As RGBA
+                Call RGBAList(bg_array, 80, 80, 80, 32)
+                Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS, bg_array(0), 360)
+                Dim fill_array(3) As RGBA
+                Call RGBAList(fill_array, temp_array(0).r, temp_array(0).G, temp_array(0).b, 64)
+                If buffAngle > 0 Then
+                    Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS, fill_array(0), buffAngle)
+                End If
+            Else
+                Call Engine_Text_Render(JsonLanguage.Item("MENSAJE_542") & CLng(DrogaCounter) & "s", PosX, PosY, temp_array, 1, True, 0, 160)
+            End If
         End If
     End If
     Call RenderPickUpObjText
@@ -3659,6 +3682,35 @@ Public Sub Engine_Draw_Load(ByVal x As Integer, ByVal y As Integer, ByVal Width 
     Exit Sub
 Engine_Draw_Load_Err:
     Call RegistrarError(Err.Number, Err.Description, "engine.Engine_Draw_Load", Erl)
+    Resume Next
+End Sub
+
+Public Sub Engine_Draw_Pie(ByVal cx As Integer, ByVal cy As Integer, ByVal radius As Integer, color As RGBA, ByVal angle As Single, Optional ByVal segments As Integer = 48)
+    On Error GoTo Engine_Draw_Pie_Err
+    If angle <= 0 Or radius <= 0 Then Exit Sub
+    If angle > 360 Then angle = 360
+    Call RGBAList(temp_rgb, color.r, color.G, color.b, color.a)
+    Call SpriteBatch.SetTexture(Nothing)
+    Call SpriteBatch.SetAlpha(False)
+    Dim arcRad As Single
+    arcRad = angle * PI / 180
+    Dim step As Single
+    step = arcRad / segments
+    Dim i As Integer
+    Dim t1 As Single, t2 As Single
+    Dim x1 As Single, y1 As Single, x2 As Single, y2 As Single
+    For i = 0 To segments - 1
+        t1 = i * step
+        t2 = (i + 1) * step
+        x1 = cx + radius * Sin(t1)
+        y1 = cy - radius * Cos(t1)
+        x2 = cx + radius * Sin(t2)
+        y2 = cy - radius * Cos(t2)
+        Call SpriteBatch.DrawTriangle(cx, cy, CLng(x1), CLng(y1), CLng(x2), CLng(y2), temp_rgb())
+    Next i
+    Exit Sub
+Engine_Draw_Pie_Err:
+    Call RegistrarError(Err.Number, Err.Description, "engine.Engine_Draw_Pie", Erl)
     Resume Next
 End Sub
 

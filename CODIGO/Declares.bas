@@ -355,6 +355,8 @@ Public Const HotKeyCount As Integer = 10
 
 Public Enum e_FeatureToggleMask
     eEnableHotkeys = 1
+    eShowGmDebugData = 2
+    eBuffTimerAsCircle = 4
 End Enum
 
 Public HideHotkeys                                                           As Boolean
@@ -390,6 +392,7 @@ Public CaminandoMacro          As Boolean
 Public CaminarX                As Integer
 Public CaminarY                As Integer
 Public FeatureToggles          As Long 'use values from e_FeatureToggleMask
+Public g_debug_click_info      As String
 Public gDragState              As t_DragState
 Public character_screen_action As e_connect_user_action
 
@@ -1061,6 +1064,14 @@ Public Enum eEditOptions
     eo_Intervalo
     eo_Hogar
     eo_Alias
+    eo_AprendeProfesion
+    eo_OlvidaProfesion
+    eo_FaccionStatus
+    eo_ArmadaReal
+    eo_FuerzasCaos
+    eo_RecompensasReal
+    eo_RecompensasCaos
+    eo_FactionScore
 End Enum
 
 ''

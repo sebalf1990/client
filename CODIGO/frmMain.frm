@@ -1955,6 +1955,7 @@ Private Sub Contadores_Timer()
     End If
     If InviCounter = 0 And DrogaCounter = 0 Then
         Contadores.enabled = False
+        DrogaCounterMax = 0
         If UserStats.AgiState <> eNormal Then
             UserStats.AgiState = eNormal
             UserStats.StrState = eNormal

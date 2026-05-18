@@ -53,6 +53,40 @@ Public Sub SetupGameplayUI()
     Call LoadHotkeys
 End Sub
 
+#If DEBUGGING = 1 Then
+Public Sub CaptureDebugClickInfo(ByVal tx As Integer, ByVal ty As Integer)
+    On Error GoTo CaptureDebugClickInfo_Err
+    Dim info As String
+    Dim charIdx As Integer
+    If tx < XMinMapSize Or tx > XMaxMapSize Then Exit Sub
+    If ty < YMinMapSize Or ty > YMaxMapSize Then Exit Sub
+    charIdx = MapData(tx, ty).charindex
+    If charIdx > 0 And charIdx <= UBound(charlist) Then
+        With charlist(charIdx)
+            If .EsNpc Then
+                info = .nombre & Chr(13) & _
+                       "Nro: " & .NpcNumber & Chr(13) & _
+                       "Body: " & .iBody & "  Idle: " & .BodyIdle & Chr(13) & _
+                       "HP: " & .UserMinHp & "/" & .UserMaxHp
+            End If
+        End With
+    End If
+    If LenB(info) = 0 Then
+        With MapData(tx, ty).OBJInfo
+            If .ObjIndex > 0 Then
+                info = ObjData(.ObjIndex).Name & Chr(13) & _
+                       "Nro: " & .ObjIndex & Chr(13) & _
+                       "GrhIndex: " & MapData(tx, ty).ObjGrh.GrhIndex
+            End If
+        End With
+    End If
+    g_debug_click_info = info
+    Exit Sub
+CaptureDebugClickInfo_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModGameplayUI.CaptureDebugClickInfo", Erl)
+End Sub
+#End If
+
 Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
     On Error GoTo OnClick_Err
     If pausa Then Exit Sub
@@ -82,6 +116,11 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
         Case Else
             Exit Sub
     End Select
+#If DEBUGGING = 1 Then
+    If EsGM And IsSet(FeatureToggles, eShowGmDebugData) Then
+        Call CaptureDebugClickInfo(tX, tY)
+    End If
+#End If
     If MouseAction = e_MouseAction.eThrowOrLook Then
         If Not Comerciando Then
             If MouseShift = 0 Then
@@ -376,7 +415,7 @@ Public Sub SetInvItem(ByVal Slot As Byte, _
         .ElementalTags = ElementalTags
         .IsBindable = IsBindable > 0
     End With
-    Call frmMain.Inventario.SetItem(Slot, ObjIndex, Amount, Equipped, GrhIndex, ObjType, MaxHit, MinHit, Def, value, Name, ElementalTags, CanUse)
+    Call frmMain.Inventario.SetItem(Slot, ObjIndex, Amount, Equipped, GrhIndex, ObjType, MaxHit, MinHit, Def, value, Name, ElementalTags, CanUse, IsBindable > 0)
 End Sub
 
 Public Sub SelectItemSlot(ByVal Slot As Integer)

@@ -577,6 +577,13 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                 '    End If
             Case "/INVISIBLE"
                 Call WriteInvisible
+            Case "/SHOWNPC"
+                Call WriteNpcRadarToggle
+            Case "/RELOADRADARCOLORS"
+                RadarColorsLoaded = False
+                Call LoadRadarColors
+                Call DibujarMiniMapa
+                Call ShowConsoleMsg("Colores del radar recargados desde radar_colors.ini.")
             Case "/PANELGM"
                 Call WriteSOSShowList
                 Call WriteGMPanel
@@ -722,6 +729,18 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                             tmpInt = eEditOptions.eo_Intervalo
                         Case "HOGAR", "CIUDAD", "CASA"
                             tmpInt = eEditOptions.eo_Hogar
+                        Case "FACCION", "FACTION"
+                            tmpInt = eEditOptions.eo_FaccionStatus
+                        Case "ARMADAREAL", "ARMADA"
+                            tmpInt = eEditOptions.eo_ArmadaReal
+                        Case "FUERZASCAOS", "CAOS"
+                            tmpInt = eEditOptions.eo_FuerzasCaos
+                        Case "RECOMPREAL", "RANGOREAL"
+                            tmpInt = eEditOptions.eo_RecompensasReal
+                        Case "RECOMPCAOS", "RANGOCAOS"
+                            tmpInt = eEditOptions.eo_RecompensasCaos
+                        Case "FACCIONPTS", "FACTIONSCORE", "PUNTOSFACCION"
+                            tmpInt = eEditOptions.eo_FactionScore
                         Case Else
                             tmpInt = -1
                     End Select
@@ -1447,8 +1466,16 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
                 End If
             Case "/REQDEBUG"
                 Call HandleReqDebugCmd(ArgumentosAll, CantidadArgumentos)
+            Case "/DATOS"
+                Call HandleDatosCmd
             Case "/FEATURETOGGLE"
                 Call HandleFeatureToggle(ArgumentosAll, CantidadArgumentos)
+            Case "/APRENDE", "/OLVIDA"
+                If CantidadArgumentos < 2 Then
+                    Call ShowConsoleMsg("Uso: " & Comando & " <usuario> <profesion>")
+                Else
+                    Call WriteTalk("~" & mid$(Comando, 2) & " " & ArgumentosAll(0) & " " & ArgumentosAll(1))
+                End If
             Case Else
                 Call ShowConsoleMsg(JsonLanguage.Item("MENSAJE_COMANDO_INVALIDO"))
         End Select
@@ -1491,6 +1518,19 @@ Private Sub HandleMapSetting(ByRef arguments() As String, ByVal argCount As Inte
     End Select
     Call WriteChangeMapSetting(settingType, arguments(1))
 End Sub
+
+#If DEBUGGING = 1 Then
+Private Sub HandleDatosCmd()
+    If Not EsGM Then Exit Sub
+    If IsSet(FeatureToggles, eShowGmDebugData) Then
+        Call UnsetMask(FeatureToggles, eShowGmDebugData)
+        Call ShowConsoleMsg("[DEBUG] Panel de datos: DESACTIVADO")
+    Else
+        Call SetMask(FeatureToggles, eShowGmDebugData)
+        Call ShowConsoleMsg("[DEBUG] Panel de datos: ACTIVADO")
+    End If
+End Sub
+#End If
 
 Private Sub HandleFeatureToggle(ByRef arguments() As String, ByVal argCount As Integer)
     If EsGM Then

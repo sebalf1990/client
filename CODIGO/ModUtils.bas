@@ -16,12 +16,67 @@ Attribute VB_Name = "ModUtils"
 '
 '
 Option Explicit
+
+' Cache del bitmap del minimapa para evitar re-leer del disco en cada refresh del radar.
+Public CachedMinimapPicture As StdPicture
+Public CachedMinimapResourceMap As Integer
+
+' Colores configurables del radar (cargados de radar_colors.ini al iniciar).
+' Cada categoria tiene un par Fill (relleno) y Border (anillo exterior).
+Public RadarFill_Hostile As Long, RadarBorder_Hostile As Long
+Public RadarFill_NeutralNpc As Long, RadarBorder_NeutralNpc As Long
+Public RadarFill_QuestNpc As Long, RadarBorder_QuestNpc As Long
+Public RadarFill_GuardiaReal As Long, RadarBorder_GuardiaReal As Long
+Public RadarFill_GuardiaCaos As Long, RadarBorder_GuardiaCaos As Long
+Public RadarFill_Mascota As Long, RadarBorder_Mascota As Long
+Public RadarFill_UserGm As Long, RadarBorder_UserGm As Long
+Public RadarFill_UserCiudadano As Long, RadarBorder_UserCiudadano As Long
+Public RadarFill_UserCriminal As Long, RadarBorder_UserCriminal As Long
+Public RadarFill_UserImperial As Long, RadarBorder_UserImperial As Long
+Public RadarFill_UserCaos As Long, RadarBorder_UserCaos As Long
+Public RadarFill_PartyMember As Long, RadarBorder_PartyMember As Long
+Public RadarFill_ClanMember As Long, RadarBorder_ClanMember As Long
+' Colores de los simbolos de estado de quest dibujados sobre los QuestNpc.
+Public RadarQuestSymbol_Available As Long   ' default amarillo brillante
+Public RadarQuestSymbol_InProgress As Long  ' default gris claro
+Public RadarQuestSymbol_Ready As Long       ' default amarillo brillante
+Public RadarNpcSymbol_Sacerdote As Long      ' default azul
+Public RadarNpcSymbol_Banquero As Long       ' default dorado
+' Tamano del punto del radar: 1=chico(3x3), 2=mediano(4x4), 3=grande(5x5).
+Public RadarPointSize As Byte
+' Public para permitir reload via /RELOADRADARCOLORS.
+Public RadarColorsLoaded As Boolean
+
+Private Enum eRadarIcon
+    eRadarIconNone = 0
+    eRadarIconQuestAvailable = 1
+    eRadarIconQuestInProgress = 2
+    eRadarIconQuestReady = 3
+    eRadarIconSacerdote = 4
+    eRadarIconBanquero = 5
+    eRadarIconCustom1 = 6
+End Enum
+
+Private Const RADAR_ICON_SIZE As Long = 11
+Private Const RADAR_ICON_COLOR_KEY As Long = &HFF00FF
+
+Private RadarIconsLoaded As Boolean
+Private RadarIconQuestAvailable As StdPicture
+Private RadarIconQuestInProgress As StdPicture
+Private RadarIconQuestReady As StdPicture
+Private RadarIconSacerdote As StdPicture
+Private RadarIconBanquero As StdPicture
+Private RadarIconCustom1 As StdPicture
 Public StopCreandoCuenta    As Boolean
 Public Const DegreeToRadian As Single = 0.01745329251994 'Pi / 180
 Public Const RadianToDegree As Single = 57.2958279087977 '180 / Pi
 'Nueva seguridad
 Public Declare Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (Destination As Any, Source As Any, ByVal Length As Long)
 Private Declare Function GetAsyncKeyState Lib "user32" (ByVal vKey As Long) As Integer
+Private Declare Function CreateCompatibleDC Lib "gdi32" (ByVal hdc As Long) As Long
+Private Declare Function DeleteDC Lib "gdi32" (ByVal hdc As Long) As Long
+Private Declare Function SelectObject Lib "gdi32" (ByVal hdc As Long, ByVal hObject As Long) As Long
+Private Declare Function TransparentBlt Lib "msimg32" (ByVal hdcDest As Long, ByVal nXOriginDest As Long, ByVal nYOriginDest As Long, ByVal nWidthDest As Long, ByVal hHeightDest As Long, ByVal hdcSrc As Long, ByVal nXOriginSrc As Long, ByVal nYOriginSrc As Long, ByVal nWidthSrc As Long, ByVal nHeightSrc As Long, ByVal crTransparent As Long) As Long
 
 'get mac adress
 Public Type Tclan
@@ -36,6 +91,7 @@ Public CheckMD5     As String
 Public intro        As Byte
 Public InviCounter  As Integer
 Public DrogaCounter As Integer
+Public DrogaCounterMax As Integer
 Type Effect_Type
     FX_Grh     As Grh      '< FxGrh.
     Fx_Index   As Integer  '< Indice del fx.
@@ -1158,8 +1214,20 @@ End Function
 Public Sub DibujarMiniMapa()
     On Error GoTo DibujarMiniMapa_Err
     If CenteredMinimap = 0 Then
-        ' Old system: load individual 100x100 map images
-        frmMain.MiniMap.Picture = LoadMinimap(ResourceMap)
+        ' Ocultar puntos amarillos del sistema viejo de party (eUbicacion / personaje()).
+        ' El radar nuevo cubre party y clan con dedup, privacidad y posicion en vivo.
+        frmMain.personaje(1).visible = False
+        frmMain.personaje(2).visible = False
+        frmMain.personaje(3).visible = False
+        frmMain.personaje(4).visible = False
+        frmMain.personaje(5).visible = False
+        ' Si cambio el mapa o no hay cache, leer del disco una sola vez.
+        If CachedMinimapPicture Is Nothing Or CachedMinimapResourceMap <> ResourceMap Then
+            Set CachedMinimapPicture = LoadMinimap(ResourceMap)
+            CachedMinimapResourceMap = ResourceMap
+        End If
+        ' Asignar Picture desde el cache: GDI clona el handle, no lee disco.
+        Set frmMain.MiniMap.Picture = CachedMinimapPicture
     End If
     ' Paint NPCs on minimap
     If ListNPCMapData(ResourceMap).NpcCount > 0 And CenteredMinimap = 0 Then
@@ -1191,11 +1259,426 @@ Public Sub DibujarMiniMapa()
             Call SetPixel(frmMain.MiniMap.hdc, PosX - 1, PosY + 1, &H808080)
             Call SetPixel(frmMain.MiniMap.hdc, PosX - 1, PosY, &H808080)
         Next i
-        frmMain.MiniMap.Refresh
     End If
+    ' --- Radar (puntos por categoria, fill + border configurables) ---
+    If CenteredMinimap = 0 Then
+        ' Pintar de fondo a frente para que hostiles y GMs queden encima de todo
+        Call DrawRadarShape(RadarNeutralNpc, RadarNeutralNpcCount, RadarFill_NeutralNpc, RadarBorder_NeutralNpc, RadarPointSize)
+        Call DrawQuestNpcRadar(RadarQuestNpc, RadarQuestNpcState, RadarQuestNpcCount, RadarFill_QuestNpc, RadarBorder_QuestNpc, RadarPointSize)
+        Call DrawNpcSymbolRadar(RadarNpcSymbol, RadarNpcSymbolSubtype, RadarNpcSymbolCount, RadarNpcSymbol_Sacerdote, RadarNpcSymbol_Banquero, RadarPointSize)
+        Call DrawRadarShape(RadarGuardiaReal, RadarGuardiaRealCount, RadarFill_GuardiaReal, RadarBorder_GuardiaReal, RadarPointSize)
+        Call DrawRadarShape(RadarGuardiaCaos, RadarGuardiaCaosCount, RadarFill_GuardiaCaos, RadarBorder_GuardiaCaos, RadarPointSize)
+        Call DrawRadarShape(RadarMascota, RadarMascotaCount, RadarFill_Mascota, RadarBorder_Mascota, RadarPointSize)
+        Call DrawRadarShape(RadarUserCiudadano, RadarUserCiudadanoCount, RadarFill_UserCiudadano, RadarBorder_UserCiudadano, RadarPointSize)
+        Call DrawRadarShape(RadarUserCriminal, RadarUserCriminalCount, RadarFill_UserCriminal, RadarBorder_UserCriminal, RadarPointSize)
+        Call DrawRadarShape(RadarUserImperial, RadarUserImperialCount, RadarFill_UserImperial, RadarBorder_UserImperial, RadarPointSize)
+        Call DrawRadarShape(RadarUserCaos, RadarUserCaosCount, RadarFill_UserCaos, RadarBorder_UserCaos, RadarPointSize)
+        Call DrawRadarShape(RadarUserGm, RadarUserGmCount, RadarFill_UserGm, RadarBorder_UserGm, RadarPointSize)
+        Call DrawRadarShape(RadarHostiles, RadarHostileCount, RadarFill_Hostile, RadarBorder_Hostile, RadarPointSize)
+        Call DrawRadarShape(RadarClanMembers, RadarClanMembersCount, RadarFill_ClanMember, RadarBorder_ClanMember, RadarPointSize)
+        Call DrawRadarShape(RadarPartyMembers, RadarPartyMembersCount, RadarFill_PartyMember, RadarBorder_PartyMember, RadarPointSize)
+    End If
+    ' Repintar siempre (asegura que se borre lo viejo cuando no hay nada para dibujar)
+    If CenteredMinimap = 0 Then frmMain.MiniMap.Refresh
     Exit Sub
 DibujarMiniMapa_Err:
     Call RegistrarError(Err.Number, Err.Description, "ModUtils.DibujarMiniMapa", Erl)
+End Sub
+
+' Pinta un punto cuadrado por entidad con relleno (fillColor) y borde (borderColor).
+' sizeCode: 1=3x3 (fill 1x1), 2=4x4 (fill 2x2), 3=5x5 (fill 3x3).
+Private Sub DrawRadarShape(ByRef arr() As t_RadarHostile, ByVal count As Integer, ByVal fillColor As Long, ByVal borderColor As Long, ByVal sizeCode As Byte)
+    On Error GoTo DrawRadarShape_Err
+    If count <= 0 Then Exit Sub
+    Dim total As Integer
+    Dim fillSize As Integer
+    Select Case sizeCode
+        Case 1: total = 3: fillSize = 1
+        Case 2: total = 4: fillSize = 2
+        Case Else: total = 5: fillSize = 3
+    End Select
+    Dim fillStart As Integer
+    Dim fillEnd As Integer
+    fillStart = (total - fillSize) \ 2
+    fillEnd = fillStart + fillSize - 1
+    Dim hdc As Long
+    hdc = frmMain.MiniMap.hdc
+    Dim k As Long
+    Dim rPx As Single, rPy As Single
+    Dim ox As Long, oy As Long
+    Dim dx As Integer, dy As Integer
+    For k = 1 To count
+        rPx = arr(k).x
+        rPy = arr(k).y
+        Call ConvertToMinimapPosition(rPx, rPy, CSng(total), CSng(total))
+        ox = CLng(rPx)
+        oy = CLng(rPy)
+        For dy = 0 To total - 1
+            For dx = 0 To total - 1
+                If dx >= fillStart And dx <= fillEnd And dy >= fillStart And dy <= fillEnd Then
+                    Call SetPixel(hdc, ox + dx, oy + dy, fillColor)
+                Else
+                    Call SetPixel(hdc, ox + dx, oy + dy, borderColor)
+                End If
+            Next dx
+        Next dy
+    Next k
+    Exit Sub
+DrawRadarShape_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModUtils.DrawRadarShape", Erl)
+End Sub
+
+' Pinta QuestNpc con simbolo de estado encima cuando states(k) > 0.
+' state: 0=plano (igual que DrawRadarShape), 1=! amarillo, 2=? gris, 3=? amarillo.
+' En PointSize=1 (3x3) los simbolos no entran -> fallback a color plano sin glifo.
+Private Sub DrawQuestNpcRadar(ByRef arr() As t_RadarHostile, ByRef states() As Byte, ByVal count As Integer, ByVal fillColor As Long, ByVal borderColor As Long, ByVal sizeCode As Byte)
+    On Error GoTo DrawQuestNpcRadar_Err
+    If count <= 0 Then Exit Sub
+    Dim baseTotal As Integer
+    Dim baseFill As Integer
+    Select Case sizeCode
+        Case 1: baseTotal = 3: baseFill = 1
+        Case 2: baseTotal = 4: baseFill = 2
+        Case Else: baseTotal = 5: baseFill = 3
+    End Select
+    Dim hdc As Long
+    hdc = frmMain.MiniMap.hdc
+    Dim k As Long
+    Dim rPx As Single, rPy As Single
+    Dim ox As Long, oy As Long
+    Dim dx As Integer, dy As Integer
+    Dim state As Byte
+    Dim total As Integer
+    Dim fillStart As Integer
+    Dim fillEnd As Integer
+    Dim iconId As eRadarIcon
+    For k = 1 To count
+        state = states(k)
+        If state >= 1 And state <= 3 And sizeCode >= 2 Then
+            total = RADAR_ICON_SIZE
+        Else
+            total = baseTotal
+        End If
+        fillStart = (total - baseFill) \ 2
+        fillEnd = fillStart + baseFill - 1
+        rPx = arr(k).x
+        rPy = arr(k).y
+        Call ConvertToMinimapPosition(rPx, rPy, CSng(total), CSng(total))
+        ox = CLng(rPx)
+        oy = CLng(rPy)
+        If state = 0 Then
+            For dy = 0 To total - 1
+                For dx = 0 To total - 1
+                    If dx >= fillStart And dx <= fillEnd And dy >= fillStart And dy <= fillEnd Then
+                        Call SetPixel(hdc, ox + dx, oy + dy, fillColor)
+                    Else
+                        Call SetPixel(hdc, ox + dx, oy + dy, borderColor)
+                    End If
+                Next dx
+            Next dy
+        ElseIf state >= 1 And state <= 3 Then
+            Select Case state
+                Case 1: iconId = eRadarIconQuestAvailable
+                Case 2: iconId = eRadarIconQuestInProgress
+                Case 3: iconId = eRadarIconQuestReady
+            End Select
+            If sizeCode >= 2 Then
+                If DrawRadarIcon(hdc, iconId, ox, oy) Then GoTo NextQuestNpc
+            End If
+            Call DrawQuestStateFallback(hdc, ox, oy, state, borderColor, sizeCode)
+        End If
+NextQuestNpc:
+    Next k
+    Exit Sub
+DrawQuestNpcRadar_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModUtils.DrawQuestNpcRadar", Erl)
+End Sub
+
+Private Sub DrawNpcSymbolRadar(ByRef arr() As t_RadarHostile, ByRef subtypes() As Byte, ByVal count As Integer, ByVal colorSacerdote As Long, ByVal colorBanquero As Long, ByVal sizeCode As Byte)
+    On Error GoTo DrawNpcSymbolRadar_Err
+    If count <= 0 Then Exit Sub
+    Dim hdc As Long
+    hdc = frmMain.MiniMap.hdc
+    Dim k As Long, rPx As Single, rPy As Single
+    Dim ox As Long, oy As Long
+    Dim sub_ As Byte
+    Dim iconId As eRadarIcon
+    For k = 1 To count
+        sub_ = subtypes(k)
+        If sub_ = 0 Then GoTo NextSymbol
+        Select Case sub_
+            Case 1: iconId = eRadarIconSacerdote
+            Case 2: iconId = eRadarIconBanquero
+            Case 3: iconId = eRadarIconCustom1
+            Case Else: GoTo NextSymbol
+        End Select
+        rPx = arr(k).x
+        rPy = arr(k).y
+        Call ConvertToMinimapPosition(rPx, rPy, RADAR_ICON_SIZE, RADAR_ICON_SIZE)
+        ox = CLng(rPx)
+        oy = CLng(rPy)
+        If Not DrawRadarIcon(hdc, iconId, ox, oy) Then
+            Call DrawNpcSymbolFallback(hdc, ox, oy, sub_, colorSacerdote, colorBanquero)
+        End If
+NextSymbol:
+    Next k
+    Exit Sub
+DrawNpcSymbolRadar_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModUtils.DrawNpcSymbolRadar", Erl)
+End Sub
+
+Private Function DrawRadarIcon(ByVal destHdc As Long, ByVal iconId As eRadarIcon, ByVal x As Long, ByVal y As Long) As Boolean
+    On Error GoTo DrawRadarIcon_Err
+    Call EnsureRadarIconsLoaded
+    Dim pic As StdPicture
+    Set pic = GetRadarIconPicture(iconId)
+    If pic Is Nothing Then Exit Function
+    Dim srcDC As Long
+    Dim oldBmp As Long
+    srcDC = CreateCompatibleDC(destHdc)
+    If srcDC = 0 Then Exit Function
+    oldBmp = SelectObject(srcDC, pic.Handle)
+    DrawRadarIcon = (TransparentBlt(destHdc, x, y, RADAR_ICON_SIZE, RADAR_ICON_SIZE, srcDC, 0, 0, RADAR_ICON_SIZE, RADAR_ICON_SIZE, RADAR_ICON_COLOR_KEY) <> 0)
+    If oldBmp <> 0 Then Call SelectObject(srcDC, oldBmp)
+    Call DeleteDC(srcDC)
+    Exit Function
+DrawRadarIcon_Err:
+    If srcDC <> 0 Then Call DeleteDC(srcDC)
+    DrawRadarIcon = False
+End Function
+
+Private Sub EnsureRadarIconsLoaded()
+    On Error GoTo EnsureRadarIconsLoaded_Err
+    If RadarIconsLoaded Then Exit Sub
+    Set RadarIconQuestAvailable = LoadRadarIconPicture("radar_quest_available.bmp")
+    Set RadarIconQuestInProgress = LoadRadarIconPicture("radar_quest_inprogress.bmp")
+    Set RadarIconQuestReady = LoadRadarIconPicture("radar_quest_ready.bmp")
+    Set RadarIconSacerdote = LoadRadarIconPicture("radar_npc_sacerdote.bmp")
+    Set RadarIconBanquero = LoadRadarIconPicture("radar_npc_banquero.bmp")
+    Set RadarIconCustom1 = LoadRadarIconPicture("radar_npc_custom1.bmp")
+    RadarIconsLoaded = True
+    Exit Sub
+EnsureRadarIconsLoaded_Err:
+    RadarIconsLoaded = True
+End Sub
+
+Private Function LoadRadarIconPicture(ByVal filename As String) As StdPicture
+    On Error GoTo LoadRadarIconPicture_Err
+    #If Compresion = 1 Then
+        Set LoadRadarIconPicture = LoadInterface(filename, False)
+    #Else
+        Dim iconPath As String
+        iconPath = App.path & "\..\Recursos\interface\" & LCase$(filename)
+        If FileExist(iconPath, vbNormal) Then
+            Set LoadRadarIconPicture = LoadPicture(iconPath)
+        End If
+    #End If
+    Exit Function
+LoadRadarIconPicture_Err:
+    Set LoadRadarIconPicture = Nothing
+End Function
+
+Private Function GetRadarIconPicture(ByVal iconId As eRadarIcon) As StdPicture
+    Select Case iconId
+        Case eRadarIconQuestAvailable
+            Set GetRadarIconPicture = RadarIconQuestAvailable
+        Case eRadarIconQuestInProgress
+            Set GetRadarIconPicture = RadarIconQuestInProgress
+        Case eRadarIconQuestReady
+            Set GetRadarIconPicture = RadarIconQuestReady
+        Case eRadarIconSacerdote
+            Set GetRadarIconPicture = RadarIconSacerdote
+        Case eRadarIconBanquero
+            Set GetRadarIconPicture = RadarIconBanquero
+        Case eRadarIconCustom1
+            Set GetRadarIconPicture = RadarIconCustom1
+    End Select
+End Function
+
+Private Sub DrawQuestStateFallback(ByVal hdc As Long, ByVal ox As Long, ByVal oy As Long, ByVal state As Byte, ByVal borderColor As Long, ByVal sizeCode As Byte)
+    Dim dx As Integer, dy As Integer
+    Dim symColor As Long
+    Select Case state
+        Case 1: symColor = RadarQuestSymbol_Available
+        Case 2: symColor = RadarQuestSymbol_InProgress
+        Case 3: symColor = RadarQuestSymbol_Ready
+    End Select
+    If sizeCode = 1 Then
+        For dy = 0 To 2
+            For dx = 0 To 2
+                Call SetPixel(hdc, ox + dx, oy + dy, symColor)
+            Next dx
+        Next dy
+    ElseIf state = 1 Then
+        Call PutGlyphPixel(hdc, ox + 2, oy + 0, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 0, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 2, oy + 1, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 1, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 2, oy + 2, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 2, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 2, oy + 3, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 3, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 2, oy + 5, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 5, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 2, oy + 6, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 6, symColor, borderColor)
+    Else
+        Call PutGlyphPixel(hdc, ox + 2, oy + 0, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 0, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 4, oy + 0, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 1, oy + 1, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 5, oy + 1, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 5, oy + 2, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 4, oy + 3, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 4, symColor, borderColor)
+        Call PutGlyphPixel(hdc, ox + 3, oy + 6, symColor, borderColor)
+    End If
+End Sub
+
+Private Sub DrawNpcSymbolFallback(ByVal hdc As Long, ByVal ox As Long, ByVal oy As Long, ByVal sub_ As Byte, ByVal colorSacerdote As Long, ByVal colorBanquero As Long)
+    Dim dx As Integer, dy As Integer
+    If sub_ = 1 Then
+        For dy = 0 To 6
+            Call PutGlyphPixel(hdc, ox + 3, oy + dy, colorSacerdote, 0)
+        Next dy
+        For dx = 1 To 5
+            If dx <> 3 Then
+                Call PutGlyphPixel(hdc, ox + dx, oy + 2, colorSacerdote, 0)
+                Call PutGlyphPixel(hdc, ox + dx, oy + 3, colorSacerdote, 0)
+            End If
+        Next dx
+    ElseIf sub_ = 2 Then
+        For dy = 0 To 6
+            Call PutGlyphPixel(hdc, ox + 1, oy + dy, colorBanquero, 0)
+        Next dy
+        For dx = 1 To 4
+            Call PutGlyphPixel(hdc, ox + dx, oy + 0, colorBanquero, 0)
+        Next dx
+        For dx = 1 To 4
+            Call PutGlyphPixel(hdc, ox + dx, oy + 3, colorBanquero, 0)
+        Next dx
+        For dx = 1 To 4
+            Call PutGlyphPixel(hdc, ox + dx, oy + 6, colorBanquero, 0)
+        Next dx
+        Call PutGlyphPixel(hdc, ox + 5, oy + 1, colorBanquero, 0)
+        Call PutGlyphPixel(hdc, ox + 5, oy + 2, colorBanquero, 0)
+        Call PutGlyphPixel(hdc, ox + 5, oy + 4, colorBanquero, 0)
+        Call PutGlyphPixel(hdc, ox + 6, oy + 4, colorBanquero, 0)
+        Call PutGlyphPixel(hdc, ox + 6, oy + 5, colorBanquero, 0)
+        Call PutGlyphPixel(hdc, ox + 5, oy + 5, colorBanquero, 0)
+    End If
+End Sub
+
+' Pinta un pixel del glifo. El parametro outline queda para conservar compatibilidad
+' con los fallback viejos, pero los iconos BMP son el camino principal.
+Private Sub PutGlyphPixel(ByVal hdc As Long, ByVal x As Long, ByVal y As Long, ByVal centerColor As Long, ByVal outlineColor As Long)
+    Call SetPixel(hdc, x, y, centerColor)
+End Sub
+
+' Parsea "R,G,B" desde una entrada de INI. Devuelve defaultColor si falla el parseo.
+Private Function ParseRgbFromIni(ByVal path As String, ByVal section As String, ByVal key As String, ByVal defaultColor As Long) As Long
+    On Error GoTo ParseRgbFromIni_Err
+    Dim raw As String
+    raw = GetVar(path, section, key)
+    If LenB(raw) = 0 Then
+        ParseRgbFromIni = defaultColor
+        Exit Function
+    End If
+    Dim parts() As String
+    parts = Split(raw, ",")
+    If UBound(parts) < 2 Then
+        ParseRgbFromIni = defaultColor
+        Exit Function
+    End If
+    Dim r As Long, g As Long, b As Long
+    r = CLng(Trim$(parts(0)))
+    g = CLng(Trim$(parts(1)))
+    b = CLng(Trim$(parts(2)))
+    If r < 0 Or r > 255 Or g < 0 Or g > 255 Or b < 0 Or b > 255 Then
+        ParseRgbFromIni = defaultColor
+        Exit Function
+    End If
+    ParseRgbFromIni = RGB(r, g, b)
+    Exit Function
+ParseRgbFromIni_Err:
+    ParseRgbFromIni = defaultColor
+End Function
+
+' Carga los colores y el tamano del radar desde radar_colors.ini con fallback a defaults.
+' Idempotente: solo carga una vez por sesion. Resetear RadarColorsLoaded antes de llamar
+' para forzar relectura (lo hace /RELOADRADARCOLORS).
+Public Sub LoadRadarColors()
+    On Error GoTo LoadRadarColors_Err
+    If RadarColorsLoaded Then Exit Sub
+    ' Defaults hardcodeados (fallback si falta INI o keys malformadas).
+    RadarFill_Hostile = RGB(64, 64, 64):           RadarBorder_Hostile = RGB(255, 128, 128)
+    RadarFill_NeutralNpc = RGB(255, 255, 255):     RadarBorder_NeutralNpc = RGB(0, 0, 0)
+    RadarFill_QuestNpc = RGB(255, 201, 14):        RadarBorder_QuestNpc = RGB(0, 0, 0)
+    RadarFill_GuardiaReal = RGB(0, 128, 255):      RadarBorder_GuardiaReal = RGB(255, 255, 255)
+    RadarFill_GuardiaCaos = RGB(128, 0, 32):       RadarBorder_GuardiaCaos = RGB(255, 255, 255)
+    RadarFill_Mascota = RGB(192, 192, 192):        RadarBorder_Mascota = RGB(255, 165, 0)
+    RadarFill_UserGm = RGB(255, 215, 0):           RadarBorder_UserGm = RGB(144, 238, 144)
+    RadarFill_UserCiudadano = RGB(135, 206, 250):  RadarBorder_UserCiudadano = RGB(144, 238, 144)
+    RadarFill_UserCriminal = RGB(255, 182, 193):   RadarBorder_UserCriminal = RGB(144, 238, 144)
+    RadarFill_UserImperial = RGB(255, 0, 255):     RadarBorder_UserImperial = RGB(0, 0, 0)
+    RadarFill_UserCaos = RGB(0, 255, 0):            RadarBorder_UserCaos = RGB(0, 0, 0)
+    RadarFill_PartyMember = RGB(0, 255, 0):         RadarBorder_PartyMember = RGB(0, 80, 0)
+    RadarFill_ClanMember = RGB(0, 128, 255):        RadarBorder_ClanMember = RGB(0, 0, 80)
+    RadarQuestSymbol_Available = RGB(255, 255, 80)
+    RadarQuestSymbol_InProgress = RGB(180, 180, 180)
+    RadarQuestSymbol_Ready = RGB(255, 255, 80)
+    RadarNpcSymbol_Sacerdote = RGB(80, 160, 255)
+    RadarNpcSymbol_Banquero = RGB(255, 200, 50)
+    RadarPointSize = 3
+    Dim path As String
+    path = App.path & "\radar_colors.ini"
+    If FileExist(path, vbNormal) Then
+        ' Tamano del punto
+        Dim sizeRaw As String
+        sizeRaw = GetVar(path, "GENERAL", "PointSize")
+        If LenB(sizeRaw) > 0 Then
+            Dim szVal As Long
+            szVal = val(sizeRaw)
+            If szVal >= 1 And szVal <= 3 Then RadarPointSize = CByte(szVal)
+        End If
+        ' Colores por categoria (Fill + Border)
+        RadarFill_Hostile = ParseRgbFromIni(path, "COLORS", "Hostile_Fill", RadarFill_Hostile)
+        RadarBorder_Hostile = ParseRgbFromIni(path, "COLORS", "Hostile_Border", RadarBorder_Hostile)
+        RadarFill_NeutralNpc = ParseRgbFromIni(path, "COLORS", "NeutralNpc_Fill", RadarFill_NeutralNpc)
+        RadarBorder_NeutralNpc = ParseRgbFromIni(path, "COLORS", "NeutralNpc_Border", RadarBorder_NeutralNpc)
+        RadarFill_QuestNpc = ParseRgbFromIni(path, "COLORS", "QuestNpc_Fill", RadarFill_QuestNpc)
+        RadarBorder_QuestNpc = ParseRgbFromIni(path, "COLORS", "QuestNpc_Border", RadarBorder_QuestNpc)
+        RadarFill_GuardiaReal = ParseRgbFromIni(path, "COLORS", "GuardiaReal_Fill", RadarFill_GuardiaReal)
+        RadarBorder_GuardiaReal = ParseRgbFromIni(path, "COLORS", "GuardiaReal_Border", RadarBorder_GuardiaReal)
+        RadarFill_GuardiaCaos = ParseRgbFromIni(path, "COLORS", "GuardiaCaos_Fill", RadarFill_GuardiaCaos)
+        RadarBorder_GuardiaCaos = ParseRgbFromIni(path, "COLORS", "GuardiaCaos_Border", RadarBorder_GuardiaCaos)
+        RadarFill_Mascota = ParseRgbFromIni(path, "COLORS", "Mascota_Fill", RadarFill_Mascota)
+        RadarBorder_Mascota = ParseRgbFromIni(path, "COLORS", "Mascota_Border", RadarBorder_Mascota)
+        RadarFill_UserGm = ParseRgbFromIni(path, "COLORS", "UserGm_Fill", RadarFill_UserGm)
+        RadarBorder_UserGm = ParseRgbFromIni(path, "COLORS", "UserGm_Border", RadarBorder_UserGm)
+        RadarFill_UserCiudadano = ParseRgbFromIni(path, "COLORS", "UserCiudadano_Fill", RadarFill_UserCiudadano)
+        RadarBorder_UserCiudadano = ParseRgbFromIni(path, "COLORS", "UserCiudadano_Border", RadarBorder_UserCiudadano)
+        RadarFill_UserCriminal = ParseRgbFromIni(path, "COLORS", "UserCriminal_Fill", RadarFill_UserCriminal)
+        RadarBorder_UserCriminal = ParseRgbFromIni(path, "COLORS", "UserCriminal_Border", RadarBorder_UserCriminal)
+        RadarFill_UserImperial = ParseRgbFromIni(path, "COLORS", "UserImperial_Fill", RadarFill_UserImperial)
+        RadarBorder_UserImperial = ParseRgbFromIni(path, "COLORS", "UserImperial_Border", RadarBorder_UserImperial)
+        RadarFill_UserCaos = ParseRgbFromIni(path, "COLORS", "UserCaos_Fill", RadarFill_UserCaos)
+        RadarBorder_UserCaos = ParseRgbFromIni(path, "COLORS", "UserCaos_Border", RadarBorder_UserCaos)
+        RadarFill_PartyMember = ParseRgbFromIni(path, "COLORS", "PartyMember_Fill", RadarFill_PartyMember)
+        RadarBorder_PartyMember = ParseRgbFromIni(path, "COLORS", "PartyMember_Border", RadarBorder_PartyMember)
+        RadarFill_ClanMember = ParseRgbFromIni(path, "COLORS", "ClanMember_Fill", RadarFill_ClanMember)
+        RadarBorder_ClanMember = ParseRgbFromIni(path, "COLORS", "ClanMember_Border", RadarBorder_ClanMember)
+        RadarQuestSymbol_Available = ParseRgbFromIni(path, "COLORS", "QuestSymbol_Available", RadarQuestSymbol_Available)
+        RadarQuestSymbol_InProgress = ParseRgbFromIni(path, "COLORS", "QuestSymbol_InProgress", RadarQuestSymbol_InProgress)
+        RadarQuestSymbol_Ready = ParseRgbFromIni(path, "COLORS", "QuestSymbol_Ready", RadarQuestSymbol_Ready)
+        RadarNpcSymbol_Sacerdote = ParseRgbFromIni(path, "COLORS", "NpcSymbol_Sacerdote", RadarNpcSymbol_Sacerdote)
+        RadarNpcSymbol_Banquero = ParseRgbFromIni(path, "COLORS", "NpcSymbol_Banquero", RadarNpcSymbol_Banquero)
+    End If
+    RadarColorsLoaded = True
+    Exit Sub
+LoadRadarColors_Err:
+    RadarColorsLoaded = True
+    Call RegistrarError(Err.Number, Err.Description, "ModUtils.LoadRadarColors", Erl)
 End Sub
 
 Public Sub RenderMinimapCentered(ByVal currentMap As Integer, ByVal tileX As Integer, ByVal tileY As Integer, Optional ByVal viewDeltaW As Long = 0, Optional ByVal viewDeltaH As Long = 0)

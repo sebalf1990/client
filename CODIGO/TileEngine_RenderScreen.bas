@@ -543,6 +543,31 @@ Sub RenderScreen(ByVal center_x As Integer, _
             End If
         End If
     End If
+#If DEBUGGING = 1 Then
+    If EsGM And IsSet(FeatureToggles, eShowGmDebugData) And Len(g_debug_click_info) > 0 Then
+        Dim dbgLines() As String
+        dbgLines = Split(g_debug_click_info, Chr(13))
+        Dim dbgX As Integer
+        Dim dbgY As Integer
+        Dim dbgI As Integer
+        Dim dbgW As Integer
+        Dim dbgLineW As Integer
+        Dim dbgColor(3) As RGBA
+        Call RGBAList(dbgColor, 255, 255, 255, 255)
+        dbgX = 10 + gameplay_render_offset.x
+        dbgY = 140 + gameplay_render_offset.y
+        dbgW = 0
+        For dbgI = 0 To UBound(dbgLines)
+            dbgLineW = Engine_Text_Width(dbgLines(dbgI), False, 1)
+            If dbgLineW > dbgW Then dbgW = dbgLineW
+        Next dbgI
+        Call Engine_Draw_Box(dbgX - 6, dbgY - 6, dbgW + 16, (UBound(dbgLines) + 1) * 16 + 10, RGBA_From_Comp(0, 0, 0, 220))
+        For dbgI = 0 To UBound(dbgLines)
+            Call Engine_Text_Render(dbgLines(dbgI), dbgX, dbgY, dbgColor, 1, False)
+            dbgY = dbgY + 16
+        Next dbgI
+    End If
+#End If
     Call renderCooldowns(710 + gameplay_render_offset.x, 25 + gameplay_render_offset.y)
     If InvasionActual Then
         Call Engine_Draw_Box(190 + gameplay_render_offset.x, 550 + gameplay_render_offset.y, 356, 36, RGBA_From_Comp(0, 0, 0, 200))

@@ -1055,8 +1055,6 @@ Private Sub Rotacion_boton_adelante_clase()
         Case eClass.Hunter - 1
             frmCrearPersonaje.lstProfesion.ListIndex = eClass.Warrior - 1
         Case eClass.Warrior - 1
-            frmCrearPersonaje.lstProfesion.ListIndex = eClass.Trabajador - 1
-        Case eClass.Trabajador - 1
             frmCrearPersonaje.lstProfesion.ListIndex = eClass.Mage - 1
     End Select
 End Sub
@@ -1068,7 +1066,7 @@ Private Sub Rotacion_boton_atras_clase()
     ' Implementaciï¿½n de buffer circular, arranca en eClass.Mage
     Select Case frmCrearPersonaje.lstProfesion.ListIndex
         Case eClass.Mage - 1
-            frmCrearPersonaje.lstProfesion.ListIndex = eClass.Trabajador - 1
+            frmCrearPersonaje.lstProfesion.ListIndex = eClass.Warrior - 1
         Case eClass.Druid - 1
             frmCrearPersonaje.lstProfesion.ListIndex = eClass.Mage - 1
         Case eClass.Bard - 1
@@ -1085,8 +1083,6 @@ Private Sub Rotacion_boton_atras_clase()
             frmCrearPersonaje.lstProfesion.ListIndex = eClass.paladin - 1
         Case eClass.Warrior - 1
             frmCrearPersonaje.lstProfesion.ListIndex = eClass.Hunter - 1
-        Case eClass.Trabajador - 1
-            frmCrearPersonaje.lstProfesion.ListIndex = eClass.Warrior - 1
     End Select
 End Sub
 

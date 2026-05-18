@@ -799,6 +799,7 @@ Sub Main()
     #End If
     Call Application.DeleteFile(ao20config.GetErrorLogFilename())
     Call LoadConfig
+    Call LoadRadarColors
     Call SetLanguageApplication
     Call Frmcarga.Show
     Set FormParser = New clsCursor

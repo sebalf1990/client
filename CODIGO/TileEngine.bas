@@ -450,6 +450,43 @@ Private iFrameIndex           As Byte  'Frame actual de la LL
 Private llTick                As Long  'Contador
 Public charlist(1 To 10000)   As Char
 
+' --- Radar de NPCs hostiles en minimapa (server-driven) ---
+Public Type t_RadarHostile
+    x As Byte
+    y As Byte
+End Type
+Public RadarHostiles(1 To 100) As t_RadarHostile
+Public RadarHostileCount As Integer
+Public RadarNeutralNpc(1 To 100) As t_RadarHostile
+Public RadarNeutralNpcCount As Integer
+Public RadarQuestNpc(1 To 100) As t_RadarHostile
+Public RadarQuestNpcCount As Integer
+' Array paralelo: estado de quest por NPC (0=plano, 1=disponible, 2=en progreso, 3=lista entregar)
+Public RadarQuestNpcState(1 To 100) As Byte
+Public RadarNpcSymbol(1 To 100) As t_RadarHostile
+Public RadarNpcSymbolCount As Integer
+Public RadarNpcSymbolSubtype(1 To 100) As Byte
+Public RadarGuardiaReal(1 To 100) As t_RadarHostile
+Public RadarGuardiaRealCount As Integer
+Public RadarGuardiaCaos(1 To 100) As t_RadarHostile
+Public RadarGuardiaCaosCount As Integer
+Public RadarMascota(1 To 100) As t_RadarHostile
+Public RadarMascotaCount As Integer
+Public RadarUserGm(1 To 100) As t_RadarHostile
+Public RadarUserGmCount As Integer
+Public RadarUserCiudadano(1 To 100) As t_RadarHostile
+Public RadarUserCiudadanoCount As Integer
+Public RadarUserCriminal(1 To 100) As t_RadarHostile
+Public RadarUserCriminalCount As Integer
+Public RadarUserImperial(1 To 100) As t_RadarHostile
+Public RadarUserImperialCount As Integer
+Public RadarUserCaos(1 To 100) As t_RadarHostile
+Public RadarUserCaosCount As Integer
+Public RadarPartyMembers(1 To 100) As t_RadarHostile
+Public RadarPartyMembersCount As Integer
+Public RadarClanMembers(1 To 100) As t_RadarHostile
+Public RadarClanMembersCount As Integer
+
 ' Used by GetTextExtentPoint32
 Private Type size
     cx As Long

@@ -370,7 +370,8 @@ Public Sub SetItem(ByVal Slot As Byte, _
                    ByVal eValor As Single, _
                    ByVal eName As String, _
                    ByVal ElementalTags As Long, _
-                   ByVal PuedeUsar As Byte)
+                   ByVal PuedeUsar As Byte, _
+                   Optional ByVal IsBindable As Boolean = False)
     'Sets all data for a given inventory slot
     On Error GoTo SetItem_Err
     If Slot < 1 Or Slot > InvMaxSlots Then Exit Sub
@@ -387,6 +388,7 @@ Public Sub SetItem(ByVal Slot As Byte, _
         .Valor = eValor
         .PuedeUsar = PuedeUsar
         .ElementalTags = ElementalTags
+        .IsBindable = IsBindable
     End With
     InvNeedsRedraw = True
     Exit Sub
@@ -679,6 +681,17 @@ Private Sub InventoryWindow_MouseUp(Button As Integer, Shift As Integer, x As Si
         InvSelectedItem = Slot
         InvNeedsRedraw = True
     End If
+#If DEBUGGING = 1 Then
+    If EsGM And IsSet(FeatureToggles, eShowGmDebugData) Then
+        If Slot > 0 Then
+            If UserInventory(Slot).GrhIndex > 0 Then
+                g_debug_click_info = UserInventory(Slot).Name & Chr(13) & _
+                                     "Nro: " & UserInventory(Slot).ObjIndex & Chr(13) & _
+                                     "GrhIndex: " & UserInventory(Slot).GrhIndex
+            End If
+        End If
+    End If
+#End If
     Exit Sub
 InventoryWindow_MouseUp_Err:
     Call RegistrarError(Err.Number, Err.Description, "clsGrapchicalInventory.InventoryWindow_MouseUp", Erl)

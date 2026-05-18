@@ -481,6 +481,34 @@ Public Function HandleIncomingData(ByVal message As Network.Reader) As Boolean
                 Case ServerPacketID.eAccountCharacterList
                     Call HandleAccountCharacterList
                 #End If
+            Case ServerPacketID.eNpcRadar
+                Call HandleNpcRadar
+            Case ServerPacketID.eNpcRadarNeutralNpc
+                Call HandleNpcRadarNeutralNpc
+            Case ServerPacketID.eNpcRadarQuestNpc
+                Call HandleNpcRadarQuestNpc
+            Case ServerPacketID.eNpcRadarGuardiaReal
+                Call HandleNpcRadarGuardiaReal
+            Case ServerPacketID.eNpcRadarGuardiaCaos
+                Call HandleNpcRadarGuardiaCaos
+            Case ServerPacketID.eNpcRadarMascota
+                Call HandleNpcRadarMascota
+            Case ServerPacketID.eNpcRadarUserGm
+                Call HandleNpcRadarUserGm
+            Case ServerPacketID.eNpcRadarUserCiudadano
+                Call HandleNpcRadarUserCiudadano
+            Case ServerPacketID.eNpcRadarUserCriminal
+                Call HandleNpcRadarUserCriminal
+            Case ServerPacketID.eNpcRadarNpcSymbol
+                Call HandleNpcRadarNpcSymbol
+            Case ServerPacketID.eNpcRadarUserImperial
+                Call HandleNpcRadarUserImperial
+            Case ServerPacketID.eNpcRadarUserCaos
+                Call HandleNpcRadarUserCaos
+            Case ServerPacketID.eNpcRadarPartyMember
+                Call HandleNpcRadarPartyMember
+            Case ServerPacketID.eNpcRadarClanMember
+                Call HandleNpcRadarClanMember
             Case Else
                 ' Invalid Message
         End Select
@@ -526,6 +554,22 @@ End Sub
 
 Private Sub HandleLogged()
     On Error GoTo HandleLogged_Err
+    ' Reset radar de NPCs (todas las categorias) al loguear (por si quedo estado de sesion anterior)
+    RadarHostileCount = 0
+    RadarNeutralNpcCount = 0
+    RadarQuestNpcCount = 0
+    Erase RadarQuestNpcState
+    RadarNpcSymbolCount = 0
+    Erase RadarNpcSymbol
+    Erase RadarNpcSymbolSubtype
+    RadarGuardiaRealCount = 0
+    RadarGuardiaCaosCount = 0
+    RadarMascotaCount = 0
+    RadarUserGmCount = 0
+    RadarUserCiudadanoCount = 0
+    RadarUserCriminalCount = 0
+    RadarPartyMembersCount = 0
+    RadarClanMembersCount = 0
     newUser = Reader.ReadBool
     UserCiego = False
     EngineRun = True
@@ -810,6 +854,7 @@ Public Sub HandleDisconnect()
     Group.Clear
     InviCounter = 0
     DrogaCounter = 0
+    DrogaCounterMax = 0
     frmMain.Contadores.enabled = False
     InvasionActual = 0
     frmMain.Evento.enabled = False
@@ -1359,6 +1404,7 @@ Private Sub HandleUpdateHP()
             End If
         End If
         DrogaCounter = 0
+        DrogaCounterMax = 0
         Call deleteCharIndexs
     Else
         UserStats.estado = 0
@@ -3350,6 +3396,7 @@ Private Sub HandleUpdateUserStats()
         UserStats.estado = 1
         charlist(UserCharIndex).Invisible = False
         DrogaCounter = 0
+        DrogaCounterMax = 0
     Else
         UserStats.estado = 0
     End If
@@ -3891,6 +3938,7 @@ Private Sub HandleFYA()
     UserStats.str = UserAtributos(eAtributos.Fuerza)
     UserStats.Agi = UserAtributos(eAtributos.Agilidad)
     DrogaCounter = Reader.ReadInt16()
+    If DrogaCounter > DrogaCounterMax Then DrogaCounterMax = DrogaCounter
     If UserStats.str >= 35 Then
         UserStats.StrState = eHighBuff
     ElseIf UserStats.str >= 25 Then
@@ -3939,6 +3987,7 @@ Private Sub HandleContadores()
     On Error GoTo HandleContadores_Err
     InviCounter = Reader.ReadInt16()
     DrogaCounter = Reader.ReadInt16()
+    If DrogaCounter > DrogaCounterMax Then DrogaCounterMax = DrogaCounter
     frmMain.Contadores.enabled = True
     Exit Sub
 HandleContadores_Err:
@@ -5467,22 +5516,15 @@ End Sub
 
 Private Sub HandleUbicacion()
     On Error GoTo HandleUbicacion_Err
-    Dim miembro As Byte
-    Dim x       As Byte
-    Dim y       As Byte
-    Dim map     As Integer
-    miembro = Reader.ReadInt8()
-    x = Reader.ReadInt8()
-    y = Reader.ReadInt8()
-    map = Reader.ReadInt16()
-    If x = 0 Then
-        frmMain.personaje(miembro).visible = False
-    Else
-        If UserMap = map Then
-            frmMain.personaje(miembro).visible = True
-            Call frmMain.SetMinimapPosition(miembro, x, y)
-        End If
-    End If
+    ' Sistema viejo de party-radar (puntos amarillos via personaje()) desactivado:
+    ' el radar nuevo (categorias eRadarPartyMember/eRadarClanMember) lo reemplaza.
+    ' Igual hay que leer los bytes del paquete para no desincronizar el reader.
+    Dim discardByte As Byte
+    Dim discardInt As Integer
+    discardByte = Reader.ReadInt8()
+    discardByte = Reader.ReadInt8()
+    discardByte = Reader.ReadInt8()
+    discardInt = Reader.ReadInt16()
     Exit Sub
 HandleUbicacion_Err:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleUbicacion", Erl)
@@ -5716,6 +5758,9 @@ Public Sub HandlePrivilegios()
         frmMain.btnInvisible.visible = True
         frmMain.btnSpawn.visible = True
         frmMain.onlines.visible = True
+#If DEBUGGING = 1 Then
+        Call SetMask(FeatureToggles, eShowGmDebugData)
+#End If
     Else
         frmMain.panelGM.visible = False
         frmMain.createObj.visible = False
@@ -5960,6 +6005,9 @@ Public Sub HandleSendClientToggles()
         ToggleName = Reader.ReadString8
         If ToggleName = "hotokey-enabled" Then
             Call SetMask(FeatureToggles, eEnableHotkeys)
+        End If
+        If ToggleName = "buff_timer_as_circle" Then
+            Call SetMask(FeatureToggles, eBuffTimerAsCircle)
         End If
     Next i
     Exit Sub
@@ -6297,3 +6345,157 @@ End Sub
     End Sub
 
 #End If
+
+' Helper privado para parsear paquetes de radar (formato comun: count + count*(X,Y)).
+Private Sub ReadRadarPacket(ByRef arr() As t_RadarHostile, ByRef countOut As Integer)
+    Dim count As Byte
+    count = Reader.ReadInt8()
+    countOut = 0
+    Dim i As Integer
+    Dim discard As Byte
+    For i = 1 To count
+        If i <= UBound(arr) Then
+            arr(i).x = Reader.ReadInt8()
+            arr(i).y = Reader.ReadInt8()
+            countOut = countOut + 1
+        Else
+            discard = Reader.ReadInt8()
+            discard = Reader.ReadInt8()
+        End If
+    Next i
+    Call DibujarMiniMapa
+End Sub
+
+' Helper privado para parsear el paquete extendido eNpcRadarQuestNpc (X, Y, State por NPC).
+Private Sub ReadRadarQuestNpcPacket(ByRef arr() As t_RadarHostile, ByRef states() As Byte, ByRef countOut As Integer)
+    Dim count As Byte
+    count = Reader.ReadInt8()
+    countOut = 0
+    Dim i As Integer
+    Dim discard As Byte
+    For i = 1 To count
+        If i <= UBound(arr) Then
+            arr(i).x = Reader.ReadInt8()
+            arr(i).y = Reader.ReadInt8()
+            states(i) = Reader.ReadInt8()
+            countOut = countOut + 1
+        Else
+            discard = Reader.ReadInt8()
+            discard = Reader.ReadInt8()
+            discard = Reader.ReadInt8()
+        End If
+    Next i
+    Call DibujarMiniMapa
+End Sub
+
+Private Sub HandleNpcRadar()
+    On Error GoTo HandleNpcRadar_Err
+    Call ReadRadarPacket(RadarHostiles, RadarHostileCount)
+    Exit Sub
+HandleNpcRadar_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadar", Erl)
+End Sub
+
+Private Sub HandleNpcRadarNeutralNpc()
+    On Error GoTo HandleNpcRadarNeutralNpc_Err
+    Call ReadRadarPacket(RadarNeutralNpc, RadarNeutralNpcCount)
+    Exit Sub
+HandleNpcRadarNeutralNpc_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarNeutralNpc", Erl)
+End Sub
+
+Private Sub HandleNpcRadarQuestNpc()
+    On Error GoTo HandleNpcRadarQuestNpc_Err
+    Call ReadRadarQuestNpcPacket(RadarQuestNpc, RadarQuestNpcState, RadarQuestNpcCount)
+    Exit Sub
+HandleNpcRadarQuestNpc_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarQuestNpc", Erl)
+End Sub
+
+Private Sub HandleNpcRadarGuardiaReal()
+    On Error GoTo HandleNpcRadarGuardiaReal_Err
+    Call ReadRadarPacket(RadarGuardiaReal, RadarGuardiaRealCount)
+    Exit Sub
+HandleNpcRadarGuardiaReal_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarGuardiaReal", Erl)
+End Sub
+
+Private Sub HandleNpcRadarGuardiaCaos()
+    On Error GoTo HandleNpcRadarGuardiaCaos_Err
+    Call ReadRadarPacket(RadarGuardiaCaos, RadarGuardiaCaosCount)
+    Exit Sub
+HandleNpcRadarGuardiaCaos_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarGuardiaCaos", Erl)
+End Sub
+
+Private Sub HandleNpcRadarMascota()
+    On Error GoTo HandleNpcRadarMascota_Err
+    Call ReadRadarPacket(RadarMascota, RadarMascotaCount)
+    Exit Sub
+HandleNpcRadarMascota_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarMascota", Erl)
+End Sub
+
+Private Sub HandleNpcRadarUserGm()
+    On Error GoTo HandleNpcRadarUserGm_Err
+    Call ReadRadarPacket(RadarUserGm, RadarUserGmCount)
+    Exit Sub
+HandleNpcRadarUserGm_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarUserGm", Erl)
+End Sub
+
+Private Sub HandleNpcRadarUserCiudadano()
+    On Error GoTo HandleNpcRadarUserCiudadano_Err
+    Call ReadRadarPacket(RadarUserCiudadano, RadarUserCiudadanoCount)
+    Exit Sub
+HandleNpcRadarUserCiudadano_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarUserCiudadano", Erl)
+End Sub
+
+Private Sub HandleNpcRadarUserCriminal()
+    On Error GoTo HandleNpcRadarUserCriminal_Err
+    Call ReadRadarPacket(RadarUserCriminal, RadarUserCriminalCount)
+    Exit Sub
+HandleNpcRadarUserCriminal_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarUserCriminal", Erl)
+End Sub
+
+Private Sub HandleNpcRadarNpcSymbol()
+    On Error GoTo HandleNpcRadarNpcSymbol_Err
+    Call ReadRadarQuestNpcPacket(RadarNpcSymbol, RadarNpcSymbolSubtype, RadarNpcSymbolCount)
+    Exit Sub
+HandleNpcRadarNpcSymbol_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarNpcSymbol", Erl)
+End Sub
+
+Private Sub HandleNpcRadarUserImperial()
+    On Error GoTo HandleNpcRadarUserImperial_Err
+    Call ReadRadarPacket(RadarUserImperial, RadarUserImperialCount)
+    Exit Sub
+HandleNpcRadarUserImperial_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarUserImperial", Erl)
+End Sub
+
+Private Sub HandleNpcRadarUserCaos()
+    On Error GoTo HandleNpcRadarUserCaos_Err
+    Call ReadRadarPacket(RadarUserCaos, RadarUserCaosCount)
+    Exit Sub
+HandleNpcRadarUserCaos_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarUserCaos", Erl)
+End Sub
+
+Private Sub HandleNpcRadarPartyMember()
+    On Error GoTo HandleNpcRadarPartyMember_Err
+    Call ReadRadarPacket(RadarPartyMembers, RadarPartyMembersCount)
+    Exit Sub
+HandleNpcRadarPartyMember_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarPartyMember", Erl)
+End Sub
+
+Private Sub HandleNpcRadarClanMember()
+    On Error GoTo HandleNpcRadarClanMember_Err
+    Call ReadRadarPacket(RadarClanMembers, RadarClanMembersCount)
+    Exit Sub
+HandleNpcRadarClanMember_Err:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleNpcRadarClanMember", Erl)
+End Sub

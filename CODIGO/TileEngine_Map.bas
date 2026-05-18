@@ -37,6 +37,20 @@ Sub SwitchMap(ByVal map As Integer, Optional ByVal NewResourceMap As Integer = 0
         NewResourceMap = map
     End If
     ResourceMap = NewResourceMap
+    ' Limpiar puntos del radar (todas las categorias) al cambiar de mapa - el server mandara la lista del nuevo mapa
+    RadarHostileCount = 0
+    RadarNeutralNpcCount = 0
+    RadarQuestNpcCount = 0
+    Erase RadarQuestNpcState
+    RadarNpcSymbolCount = 0
+    Erase RadarNpcSymbol
+    Erase RadarNpcSymbolSubtype
+    RadarGuardiaRealCount = 0
+    RadarGuardiaCaosCount = 0
+    RadarMascotaCount = 0
+    RadarUserGmCount = 0
+    RadarUserCiudadanoCount = 0
+    RadarUserCriminalCount = 0
     Dim OldMapHadRain As Boolean: OldMapHadRain = (MapDat.LLUVIA = 1)
     Dim OldMapHadSnow As Boolean: OldMapHadSnow = (MapDat.NIEVE = 1)
     'Cargamos el mapa.

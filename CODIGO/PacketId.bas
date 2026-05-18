@@ -208,6 +208,20 @@ Public Enum ServerPacketID
     eChangeSkinSlot
     eGuildConfig
     eShowPickUpObj
+    eNpcRadar
+    eNpcRadarNeutralNpc
+    eNpcRadarQuestNpc
+    eNpcRadarGuardiaReal
+    eNpcRadarGuardiaCaos
+    eNpcRadarMascota
+    eNpcRadarUserGm
+    eNpcRadarUserCiudadano
+    eNpcRadarUserCriminal
+    eNpcRadarNpcSymbol
+    eNpcRadarUserImperial
+    eNpcRadarUserCaos
+    eNpcRadarPartyMember
+    eNpcRadarClanMember
     eMaxPacket
     [PacketCount]
 End Enum
@@ -528,6 +542,7 @@ Public Enum ClientPacketID
     eStartAutomatedAction
     ePetFollowAll
     eAntiMacroMessage
+    eNpcRadarToggle
     eMaxPacket
     [PacketCount]
 End Enum

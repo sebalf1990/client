@@ -489,6 +489,16 @@ WriteSafeToggle_Err:
     '</EhFooter>
 End Sub
 
+Public Sub WriteNpcRadarToggle()
+    On Error GoTo WriteNpcRadarToggle_Err
+    Call Writer.WriteInt16(ClientPacketID.eNpcRadarToggle)
+    Call modNetwork.send(Writer)
+    Exit Sub
+WriteNpcRadarToggle_Err:
+    Call Writer.Clear
+    Call RegistrarError(Err.Number, Err.Description, "Argentum20.Protocol_Writes.WriteNpcRadarToggle", Erl)
+End Sub
+
 Public Sub WriteSeguroClan()
     '<EhHeader>
     On Error GoTo WriteSeguroClan_Err
