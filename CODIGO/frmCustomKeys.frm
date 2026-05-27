@@ -2,7 +2,7 @@ VERSION 5.00
 Begin VB.Form frmCustomKeys 
    BorderStyle     =   4  'Fixed ToolWindow
    Caption         =   "Configuración de controles"
-   ClientHeight    =   8265
+   ClientHeight    =   11265
    ClientLeft      =   45
    ClientTop       =   315
    ClientWidth     =   6075
@@ -18,7 +18,7 @@ Begin VB.Form frmCustomKeys
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   ScaleHeight     =   551
+   ScaleHeight     =   751
    ScaleMode       =   3  'Pixel
    ScaleWidth      =   405
    ShowInTaskbar   =   0   'False
@@ -518,6 +518,7 @@ Begin VB.Form frmCustomKeys
    Begin VB.Frame Frame4 
       BackColor       =   &H00000000&
       Caption         =   "Hablar"
+      Visible         =   0   'False
       BeginProperty Font 
          Name            =   "MS Sans Serif"
          Size            =   8.25
@@ -825,6 +826,257 @@ Begin VB.Form frmCustomKeys
       TabIndex        =   62
       Top             =   7230
       Width           =   675
+   End
+   Begin VB.CheckBox chkSecondBar 
+      Caption         =   "Mostrar segunda barra"
+      ForeColor       =   &H00000000&
+      Height          =   255
+      Left            =   240
+      TabIndex        =   97
+      Top             =   8280
+      Width           =   2535
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "HotKeys 2"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   23
+      Left            =   240
+      TabIndex        =   98
+      Top             =   9360
+      Width           =   900
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   44
+      Left            =   195
+      Locked          =   -1  'True
+      TabIndex        =   99
+      Top             =   9660
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   45
+      Left            =   1395
+      Locked          =   -1  'True
+      TabIndex        =   100
+      Top             =   9660
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   46
+      Left            =   2595
+      Locked          =   -1  'True
+      TabIndex        =   101
+      Top             =   9660
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   47
+      Left            =   3795
+      Locked          =   -1  'True
+      TabIndex        =   102
+      Top             =   9660
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   48
+      Left            =   4995
+      Locked          =   -1  'True
+      TabIndex        =   103
+      Top             =   9660
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   49
+      Left            =   195
+      Locked          =   -1  'True
+      TabIndex        =   104
+      Top             =   10020
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   50
+      Left            =   1395
+      Locked          =   -1  'True
+      TabIndex        =   105
+      Top             =   10020
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   51
+      Left            =   2595
+      Locked          =   -1  'True
+      TabIndex        =   106
+      Top             =   10020
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   52
+      Left            =   3795
+      Locked          =   -1  'True
+      TabIndex        =   107
+      Top             =   10020
+      Width           =   1095
+   End
+   Begin VB.TextBox txConfig 
+      BackColor       =   &H00FFFFFF&
+      ForeColor       =   &H00000000&
+      Height          =   300
+      Index           =   53
+      Left            =   4995
+      Locked          =   -1  'True
+      TabIndex        =   108
+      Top             =   10020
+      Width           =   1095
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "1"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   24
+      Left            =   195
+      TabIndex        =   109
+      Top             =   9960
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "2"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   25
+      Left            =   1395
+      TabIndex        =   110
+      Top             =   9960
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "3"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   26
+      Left            =   2595
+      TabIndex        =   111
+      Top             =   9960
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "4"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   27
+      Left            =   3795
+      TabIndex        =   112
+      Top             =   9960
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "5"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   28
+      Left            =   4995
+      TabIndex        =   113
+      Top             =   9960
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "6"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   29
+      Left            =   195
+      TabIndex        =   114
+      Top             =   10320
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "7"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   30
+      Left            =   1395
+      TabIndex        =   115
+      Top             =   10320
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "8"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   31
+      Left            =   2595
+      TabIndex        =   116
+      Top             =   10320
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "9"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   32
+      Left            =   3795
+      TabIndex        =   117
+      Top             =   10320
+      Width           =   90
+   End
+   Begin VB.Label lblHotKeys 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "0"
+      ForeColor       =   &H00000000&
+      Height          =   195
+      Index           =   33
+      Left            =   4995
+      TabIndex        =   118
+      Top             =   10320
+      Width           =   90
    End
    Begin VB.Label lblSalirDel 
       AutoSize        =   -1  'True
@@ -1292,6 +1544,7 @@ Private Sub Form_Load()
     AccionList3.AddItem (JsonLanguage.Item("COMBO_ACTION_KEY_2"))
     AccionList3.AddItem (JsonLanguage.Item("COMBO_ACTION_KEY_3"))
     Call CargaConfigEnForm
+    chkSecondBar.value = IIf(ShowSecondHotkeyBar, 1, 0)
     lblSalirDel(0).Caption = JsonLanguage.Item("MENSAJE_507") ' Seguro de grupo
     lblSalirDel(1).Caption = JsonLanguage.Item("MENSAJE_508") ' Robar
     lblSalirDel(2).Caption = JsonLanguage.Item("MENSAJE_509") ' Actualizar Posición
@@ -1336,6 +1589,11 @@ Private Sub Form_Load()
 Form_Load_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmCustomKeys.Form_Load", Erl)
     Resume Next
+End Sub
+
+Private Sub chkSecondBar_Click()
+    ShowSecondHotkeyBar = (chkSecondBar.value = 1)
+    Call SaveShowSecondBar
 End Sub
 
 Private Sub Form_KeyPress(KeyAscii As Integer)

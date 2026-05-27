@@ -78,6 +78,20 @@ Public Enum e_KeyAction
     eGroupList = 38
     eToggleSound = 39
     eToggleMusic = 40
+    eToggleViewportFullscreen = 41
+    eToggleInventoryWindow = 42
+    eToggleSpellsWindow = 43
+    eToggleViewportDebug = 44
+    eHKey11 = 45
+    eHKey12 = 46
+    eHKey13 = 47
+    eHKey14 = 48
+    eHKey15 = 49
+    eHKey16 = 50
+    eHKey17 = 51
+    eHKey18 = 52
+    eHKey19 = 53
+    eHKey20 = 54
     [eMaxBinds]
 End Enum
 
@@ -326,6 +340,26 @@ Public Function Accionar(ByVal KeyCode As Integer) As Boolean
             Call DoHotKey(8)
         Case BindKeys(e_KeyAction.eHKey10).KeyCode
             Call DoHotKey(9)
+        Case BindKeys(e_KeyAction.eHKey11).KeyCode
+            Call DoHotKey(10)
+        Case BindKeys(e_KeyAction.eHKey12).KeyCode
+            Call DoHotKey(11)
+        Case BindKeys(e_KeyAction.eHKey13).KeyCode
+            Call DoHotKey(12)
+        Case BindKeys(e_KeyAction.eHKey14).KeyCode
+            Call DoHotKey(13)
+        Case BindKeys(e_KeyAction.eHKey15).KeyCode
+            Call DoHotKey(14)
+        Case BindKeys(e_KeyAction.eHKey16).KeyCode
+            Call DoHotKey(15)
+        Case BindKeys(e_KeyAction.eHKey17).KeyCode
+            Call DoHotKey(16)
+        Case BindKeys(e_KeyAction.eHKey18).KeyCode
+            Call DoHotKey(17)
+        Case BindKeys(e_KeyAction.eHKey19).KeyCode
+            Call DoHotKey(18)
+        Case BindKeys(e_KeyAction.eHKey20).KeyCode
+            Call DoHotKey(19)
         Case BindKeys(eOpenMap).KeyCode
             Call frmMapaGrande.CalcularPosicionMAPA
             frmMapaGrande.Picture = LoadInterface("ventanamapa.bmp")
@@ -354,23 +388,28 @@ Accionar_Err:
 End Function
 
 Public Sub DoHotKey(ByVal HkSlot As Byte)
+    If Not IsSet(FeatureToggles, eEnableHotkeys) Then Exit Sub
+    If HotkeyList(HkSlot).Type = e_HotkeyType.Command Then
+        If LenB(HotkeyList(HkSlot).CommandText) > 0 Then
+            Call ParseUserCommand(HotkeyList(HkSlot).CommandText)
+        End If
+        Exit Sub
+    End If
     If UserStats.estado = 1 Then
         With FontTypes(FontTypeNames.FONTTYPE_INFO)
             Call ShowConsoleMsg(JsonLanguage.Item("MENSAJE_ESTAS_MUERTO"), .red, .green, .blue, .bold, .italic) ' MENSAJE_ESTAS_MUERTO=¡Estás muerto!
         End With
-    Else
-        If IsSet(FeatureToggles, eEnableHotkeys) Then
-            If HotkeyList(HkSlot).Index > 0 Then
-                Call FormParser.Parse_Form(GetGameplayForm)
-                UsaLanzar = False
-                UsingSkill = 0
-                If CursoresGraficos = 0 Then
-                    GetGameplayForm.MousePointer = vbDefault
-                End If
-            End If
-            Call WriteUseHKeySlot(HkSlot)
+        Exit Sub
+    End If
+    If HotkeyList(HkSlot).Index > 0 Then
+        Call FormParser.Parse_Form(GetGameplayForm)
+        UsaLanzar = False
+        UsingSkill = 0
+        If CursoresGraficos = 0 Then
+            GetGameplayForm.MousePointer = vbDefault
         End If
     End If
+    Call WriteUseHKeySlot(HkSlot)
 End Sub
 
 Public Sub TirarItem()

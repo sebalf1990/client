@@ -59,16 +59,6 @@ Public Sub render()
 
         End If
 
-        If DrogaCounter > 0 Then
-            temp_array(0) = D3DColorXRGB(0, 153, 0)
-            temp_array(1) = temp_array(0)
-            temp_array(2) = temp_array(0)
-            temp_array(3) = temp_array(0)
-            
-            PosY = PosY + 15
-            Engine_Text_Render "Potenciado: " & CLng(DrogaCounter) & "s", PosX, PosY, temp_array, 1, True, 0, 160
-
-        End If
         
         If OxigenoCounter > 0 Then
 

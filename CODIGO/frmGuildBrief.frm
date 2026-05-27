@@ -244,10 +244,11 @@ Command3_Click_Err:
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
     Call FormParser.Parse_Form(Me)
     Me.Picture = LoadInterface("ventanaclanes_detalles.bmp")
-    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call Aplicar_Transparencia(Me.hWnd, ModMenuTransparency.g_menu_alpha)
     Call loadButtons
     Exit Sub
 Form_Load_Err:

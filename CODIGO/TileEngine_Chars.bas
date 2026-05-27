@@ -690,7 +690,7 @@ Public Function Get_PixelY_Of_Char(ByVal char_index As Integer) As Integer
     On Error GoTo Get_PixelY_Of_Char_Err
     'Make sure it's a legal char_index
     If Char_Check(char_index) Then
-        Get_PixelY_Of_Char = (charlist(char_index).Pos.y - 2 - UserPos.y) * 32 + frmMain.renderer.ScaleWidth / 2
+        Get_PixelY_Of_Char = (charlist(char_index).Pos.y - 2 - UserPos.y) * 32 + g_viewport_logical_top + g_viewport_logical_height / 2
         Get_PixelY_Of_Char = Get_PixelY_Of_Char - 16 + gameplay_render_offset.y
     End If
     Exit Function
@@ -703,7 +703,7 @@ Public Function Get_Pixelx_Of_Char(ByVal char_index As Integer) As Integer
     On Error GoTo Get_Pixelx_Of_Char_Err
     'Make sure it's a legal char_index
     If Char_Check(char_index) Then
-        Get_Pixelx_Of_Char = (charlist(char_index).Pos.x - UserPos.x) * 32 + frmMain.renderer.ScaleWidth / 2
+        Get_Pixelx_Of_Char = (charlist(char_index).Pos.x - UserPos.x) * 32 + g_viewport_logical_left + g_viewport_logical_width / 2
         Get_Pixelx_Of_Char = Get_Pixelx_Of_Char + gameplay_render_offset.x
     End If
     Exit Function
@@ -715,7 +715,7 @@ End Function
 Public Function Get_Pixelx_Of_XY(ByVal x As Byte) As Integer
     'Make sure it's a legal char_index
     On Error GoTo Get_Pixelx_Of_XY_Err
-    Get_Pixelx_Of_XY = (x - UserPos.x) * 32 + frmMain.renderer.ScaleWidth / 2
+    Get_Pixelx_Of_XY = (x - UserPos.x) * 32 + g_viewport_logical_left + g_viewport_logical_width / 2
     Get_Pixelx_Of_XY = Get_Pixelx_Of_XY
     Exit Function
 Get_Pixelx_Of_XY_Err:
@@ -726,7 +726,7 @@ End Function
 Public Function Get_PixelY_Of_XY(ByVal y As Byte) As Integer
     'Make sure it's a legal char_index
     On Error GoTo Get_PixelY_Of_XY_Err
-    Get_PixelY_Of_XY = (y - 2 - UserPos.y) * 32 + frmMain.renderer.ScaleWidth / 2
+    Get_PixelY_Of_XY = (y - 2 - UserPos.y) * 32 + g_viewport_logical_top + g_viewport_logical_height / 2
     Get_PixelY_Of_XY = Get_PixelY_Of_XY - 16
     Exit Function
 Get_PixelY_Of_XY_Err:

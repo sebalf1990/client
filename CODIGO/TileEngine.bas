@@ -536,8 +536,6 @@ Public Sub Init_TileEngine()
     'Esto es para el movimiento suave de pjs, para que el pj termine de hacer el movimiento antes de empezar otro
     Set keysMovementPressedQueue = New clsArrayList
     Call keysMovementPressedQueue.Initialize(1, 4)
-    HalfWindowTileHeight = (frmMain.renderer.ScaleHeight / 32) \ 2
-    HalfWindowTileWidth = (frmMain.renderer.ScaleWidth / 32) \ 2
     HalfConnectTileHeight = (frmConnect.render.ScaleHeight / 32) \ 2
     HalfConnectTileWidth = (frmConnect.render.ScaleWidth / 32) \ 2
     TileBufferSizeX = 14
@@ -545,24 +543,57 @@ Public Sub Init_TileEngine()
     TileBufferPixelOffsetX = -TileBufferSizeX * TilePixelWidth
     TileBufferPixelOffsetY = -TileBufferSizeY * TilePixelHeight
     ReDim MapData(XMinMapSize To XMaxMapSize, YMinMapSize To YMaxMapSize) As MapBlock
-    MinXBorder = XMinMapSize + (frmMain.renderer.ScaleWidth \ 64)
-    MaxXBorder = XMaxMapSize - (frmMain.renderer.ScaleWidth \ 64)
-    MinYBorder = YMinMapSize + (frmMain.renderer.ScaleHeight \ 64)
-    MaxYBorder = YMaxMapSize - (frmMain.renderer.ScaleHeight \ 64)
-    MinYBorder = MinYBorder
+    Call SetViewportLogicalHud
+    Call Recalc_TileEngine_Viewport
     Exit Sub
 Init_TileEngine_Err:
     Call RegistrarError(Err.Number, Err.Description, "TileEngine.Init_TileEngine", Erl)
     Resume Next
 End Sub
 
+Public Sub SetViewportLogicalHud()
+    g_viewport_logical_left = VIEWPORT_HUD_LEFT
+    g_viewport_logical_top = VIEWPORT_HUD_TOP
+    g_viewport_logical_width = VIEWPORT_HUD_WIDTH
+    g_viewport_logical_height = VIEWPORT_HUD_HEIGHT
+End Sub
+
+Public Sub SetViewportLogicalFull()
+    g_viewport_logical_left = VIEWPORT_FULL_LEFT
+    g_viewport_logical_top = VIEWPORT_FULL_TOP
+    g_viewport_logical_width = VIEWPORT_FULL_WIDTH
+    g_viewport_logical_height = VIEWPORT_FULL_HEIGHT
+End Sub
+
+Public Sub Recalc_TileEngine_Viewport()
+    On Error GoTo Recalc_TileEngine_Viewport_Err
+    ' Recalcula variables del viewport logico. El PictureBox renderer no cambia de tamano en runtime.
+    HalfWindowTileHeight = (g_viewport_logical_height / 32) \ 2
+    HalfWindowTileWidth = (g_viewport_logical_width / 32) \ 2
+    ' Bordes historicos de area visible/debug; el movimiento usa los limites reales del mapa.
+    MinXBorder = XMinMapSize + (VIEWPORT_HUD_WIDTH \ 64)
+    MaxXBorder = XMaxMapSize - (VIEWPORT_HUD_WIDTH \ 64)
+    MinYBorder = YMinMapSize + (VIEWPORT_HUD_HEIGHT \ 64)
+    MaxYBorder = YMaxMapSize - (VIEWPORT_HUD_HEIGHT \ 64)
+    With Render_Main_Rect
+        .Top = 0
+        .Left = 0
+        .Right = VIEWPORT_FULL_WIDTH
+        .Bottom = VIEWPORT_FULL_HEIGHT
+    End With
+    Exit Sub
+Recalc_TileEngine_Viewport_Err:
+    Call RegistrarError(Err.Number, Err.Description, "TileEngine.Recalc_TileEngine_Viewport", Erl)
+    Resume Next
+End Sub
+
 Sub ConvertCPtoTP(ByVal viewPortX As Integer, ByVal viewPortY As Integer, ByRef tX As Byte, ByRef tY As Byte)
     On Error GoTo ConvertCPtoTP_Err
     Dim ltx As Long: Dim lty As Long
-    If viewPortX < 0 Or viewPortX > frmMain.renderer.ScaleWidth Then Exit Sub
-    If viewPortY < 0 Or viewPortY > frmMain.renderer.ScaleHeight Then Exit Sub
-    ltx = UserPos.x + viewPortX \ 32 - frmMain.renderer.ScaleWidth \ 64
-    lty = UserPos.y + viewPortY \ 32 - frmMain.renderer.ScaleHeight \ 64
+    If viewPortX < g_viewport_logical_left Or viewPortX > g_viewport_logical_left + g_viewport_logical_width Then Exit Sub
+    If viewPortY < g_viewport_logical_top Or viewPortY > g_viewport_logical_top + g_viewport_logical_height Then Exit Sub
+    ltx = UserPos.x + (viewPortX - g_viewport_logical_left) \ 32 - g_viewport_logical_width \ 64
+    lty = UserPos.y + (viewPortY - g_viewport_logical_top) \ 32 - g_viewport_logical_height \ 64
     tX = max(0, ltx)
     tY = max(0, lty)
     Exit Sub
@@ -749,7 +780,8 @@ Sub MoveScreen(ByVal nHeading As E_Heading)
     tX = UserPos.x + x
     tY = UserPos.y + y
     'Check to see if its out of bounds
-    If tX < MinXBorder Or tX > MaxXBorder Or tY < MinYBorder Or tY > MaxYBorder Then
+    If tX < XMinMapSize Or tX > XMaxMapSize Or tY < YMinMapSize Or tY > YMaxMapSize Then
+        Call ViewportDebug_AppendDiagLog("[MoveScreen OOB skip] map=" & UserMap & " pos=" & UserPos.x & "," & UserPos.y & " target=" & tX & "," & tY & " h=" & nHeading & " full=" & ViewportDebug_IsFullscreen())
         Exit Sub
     Else
         'Start moving... MainLoop does the rest
@@ -868,7 +900,7 @@ Function LegalPos(ByVal x As Integer, ByVal y As Integer, ByVal Heading As E_Hea
     On Error GoTo LegalPos_Err
     'Checks to see if a tile position is legal
     'Limites del mapa
-    If x < MinXBorder Or x > MaxXBorder Or y < MinYBorder Or y > MaxYBorder Then
+    If x < XMinMapSize Or x > XMaxMapSize Or y < YMinMapSize Or y > YMaxMapSize Then
         Exit Function
     End If
     '¿Hay un personaje?

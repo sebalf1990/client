@@ -418,6 +418,29 @@ Begin VB.Form frmOpciones
          Top             =   690
          Width           =   255
       End
+      Begin VB.HScrollBar scrMenuAlpha 
+         Height          =   315
+         LargeChange     =   16
+         Left            =   4080
+         Max             =   255
+         Min             =   80
+         SmallChange     =   4
+         TabIndex        =   200
+         Top             =   4530
+         Value           =   230
+         Width           =   3000
+      End
+      Begin VB.Label lblMenuAlpha 
+         AutoSize        =   -1  'True
+         BackStyle       =   0  'Transparent
+         Caption         =   "Transparencia menus:"
+         ForeColor       =   &H00FFFFFF&
+         Height          =   240
+         Left            =   4080
+         TabIndex        =   201
+         Top             =   4290
+         Width           =   2700
+      End
    End
    Begin VB.Image Image1 
       Height          =   255
@@ -658,8 +681,10 @@ Private Sub cmbVRAM_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
-    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call MenuTransparency_EnsureLoaded
+    Call Aplicar_Transparencia(Me.hWnd, g_menu_alpha)
     '    Call FormParser.Parse_Form(Me)
     Me.Picture = LoadInterface("configuracion-vacio.bmp")
     PanelJugabilidad.Picture = LoadInterface("configuracion-jugabilidad.bmp")
@@ -698,6 +723,8 @@ Private Sub Form_Load()
     BtnSolapa(1).Picture = LoadInterface("boton-video-off.bmp")
     BtnSolapa(2).Picture = LoadInterface("boton-audio-off.bmp")
     Call loadButtons
+    Call MenuTransparency_EnsureLoaded
+    scrMenuAlpha.value = g_menu_alpha
     Exit Sub
 Form_Load_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmOpciones.Form_Load", Erl)
@@ -707,6 +734,20 @@ End Sub
 Private Sub loadButtons()
     Set cBotonCerrar = New clsGraphicalButton
     Call cBotonCerrar.Initialize(cmdCerrar, "boton-cerrar-default.bmp", "boton-cerrar-over.bmp", "boton-cerrar-off.bmp", Me)
+End Sub
+
+Private Sub scrMenuAlpha_Change()
+    On Error Resume Next
+    Call MenuTransparency_Set(scrMenuAlpha.value)
+    Call Aplicar_Transparencia(Me.hWnd, g_menu_alpha)
+    Call ModFloatingWindows.Refresh_FloatingWindowsTransparency
+End Sub
+
+Private Sub scrMenuAlpha_Scroll()
+    On Error Resume Next
+    Call MenuTransparency_Set(scrMenuAlpha.value)
+    Call Aplicar_Transparencia(Me.hWnd, g_menu_alpha)
+    Call ModFloatingWindows.Refresh_FloatingWindowsTransparency
 End Sub
 
 Public Function Is_Transparent(ByVal hWnd As Long) As Boolean

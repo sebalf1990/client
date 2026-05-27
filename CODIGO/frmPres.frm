@@ -66,6 +66,7 @@ Private Sub Form_KeyPress(KeyAscii As Integer)
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Me.Width = 800 * Screen.TwipsPerPixelX
     Me.Height = 600 * Screen.TwipsPerPixelY
     puedo = False

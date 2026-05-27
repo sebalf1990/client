@@ -1201,6 +1201,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     FrmTorneo.Caption = JsonLanguage.Item("MENSAJE_ORGANIZACION_EVENTO")
     FraTorneosY.Caption = JsonLanguage.Item("MENSAJE_TORNEOS_EVENTOS")
     lblSeleccionarEl.Caption = JsonLanguage.Item("MENSAJE_SELECCIONAR_EVENTO") ' Seleccionar el evento a realizar

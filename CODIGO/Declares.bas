@@ -25,6 +25,21 @@ Public LegionarySecureX As Boolean
 Public QuePestañaInferior As Byte
 Public newUser As Boolean
 
+' Viewport logico del gameplay. El renderer fisico queda siempre 1024x768;
+' estas coordenadas definen que sub-rect usa camara/input segun el modo HUD/FULL.
+Public Const VIEWPORT_HUD_LEFT   As Long = 8
+Public Const VIEWPORT_HUD_TOP    As Long = 152
+Public Const VIEWPORT_HUD_WIDTH  As Long = 736
+Public Const VIEWPORT_HUD_HEIGHT As Long = 608
+Public Const VIEWPORT_FULL_LEFT   As Long = 0
+Public Const VIEWPORT_FULL_TOP    As Long = 0
+Public Const VIEWPORT_FULL_WIDTH  As Long = 1024
+Public Const VIEWPORT_FULL_HEIGHT As Long = 768
+Public g_viewport_logical_left   As Long
+Public g_viewport_logical_top    As Long
+Public g_viewport_logical_width  As Long
+Public g_viewport_logical_height As Long
+
 Public Enum tMacro
     dobleclick = 1
     Coordenadas = 2
@@ -343,23 +358,26 @@ Public Enum e_HotkeyType
     Item = 1
     Spell = 2
     Unknown = 3
+    Command = 4
 End Enum
 
 Public Type t_HotkeyEntry
     Type As Integer 'should be e_HotkeyType but enums are hard to serialize with with C since it can chance mem size
     Index As Integer
     LastKnownSlot As Integer
+    CommandText As String
 End Type
 
-Public Const HotKeyCount As Integer = 10
+Public Const HotKeyCount As Integer = 20
 
 Public Enum e_FeatureToggleMask
     eEnableHotkeys = 1
     eShowGmDebugData = 2
-    eBuffTimerAsCircle = 4
+    eShowViewportDebug = 8
 End Enum
 
 Public HideHotkeys                                                           As Boolean
+Public ShowSecondHotkeyBar                                                   As Boolean
 Public HotkeyList(HotKeyCount)                                               As t_HotkeyEntry
 Public packetControl(ClientPacketID.eMinPacket To ClientPacketID.eMaxPacket) As t_packetControl
 Public Const NUM_PASOS                                                       As Byte = 7

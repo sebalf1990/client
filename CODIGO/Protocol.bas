@@ -30,8 +30,8 @@ Option Explicit
 'When we have a list of strings, we use this to separate them and prevent
 'having too many string lengths in the queue. Yes, each string is NULL-terminated :P
 Private Const SEPARATOR As String * 1 = vbNullChar
-Private LastPacket      As Byte
-Private IterationsHID   As Integer
+Private LastPacket                  As Byte
+Private IterationsHID               As Integer
 Private Const MAX_ITERATIONS_HID = 200
 #If DIRECT_PLAY = 0 Then
     Private Reader As Network.Reader
@@ -453,6 +453,8 @@ Public Function HandleIncomingData(ByVal message As Network.Reader) As Boolean
                 Call HandleUpdateShopClienteCredits
             Case ServerPacketID.eSendSkillCdUpdate
                 Call HandleSendSkillCdUpdate
+            Case ServerPacketID.eUpdatePoisonStacks
+                Call HandleUpdatePoisonStacks
             Case ServerPacketID.eDebugDataResponse
                 Call HandleDebugDataResponse
             Case ServerPacketID.eCreateProjectile
@@ -715,6 +717,11 @@ Public Sub HandleDisconnect()
         FullLogout = Reader.ReadBool
     End If
     Call SaveSetting("OPCIONES", "LastScroll", hlst.Scroll)
+    ' Plan 21.002 V9.12: preservar viewport FULL al relogear.
+    If Is_RendererStateFullscreen() Then
+        Call Mark_PendingRestoreFullscreen
+        Call ExitViewportFullscreen
+    End If
     Mod_Declaraciones.Connected = False
     Call ResetearUserMacro
     'Close connection
@@ -853,8 +860,6 @@ Public Sub HandleDisconnect()
     UserStats.estado = 0
     Group.Clear
     InviCounter = 0
-    DrogaCounter = 0
-    DrogaCounterMax = 0
     frmMain.Contadores.enabled = False
     InvasionActual = 0
     frmMain.Evento.enabled = False
@@ -1198,6 +1203,7 @@ Private Sub HandleSafeModeOn()
     On Error GoTo HandleSafeModeOn_Err
     SeguroGame = True
     Call frmMain.DibujarSeguro
+    Call Refresh_FullscreenButtons
     Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_ACTIVADO"), 65, 190, 156, False, False, False)
     Exit Sub
 HandleSafeModeOn_Err:
@@ -1210,6 +1216,7 @@ Private Sub HandleSafeModeOff()
     On Error GoTo HandleSafeModeOff_Err
     SeguroGame = False
     Call frmMain.DesDibujarSeguro
+    Call Refresh_FullscreenButtons
     Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_DESACTIVADO"), 65, 190, 156, False, False, False)
     Exit Sub
 HandleSafeModeOff_Err:
@@ -1221,6 +1228,7 @@ End Sub
 Private Sub HandlePartySafeOff()
     On Error GoTo HandlePartySafeOff_Err
     Call frmMain.ControlSeguroParty(False)
+    Call Refresh_FullscreenButtons
     Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_PARTY_OFF"), 250, 250, 0, False, True, False)
     Exit Sub
 HandlePartySafeOff_Err:
@@ -1241,6 +1249,7 @@ Private Sub HandleClanSeguro()
         frmMain.ImgSegClan = LoadInterface("boton-seguro-clan-on.bmp")
         SeguroClanX = True
     End If
+    Call Refresh_FullscreenButtons
     Exit Sub
 HandleClanSeguro_Err:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleClanSeguro", Erl)
@@ -1328,6 +1337,7 @@ End Sub
 Private Sub HandlePartySafeOn()
     On Error GoTo HandlePartySafeOn_Err
     Call frmMain.ControlSeguroParty(True)
+    Call Refresh_FullscreenButtons
     Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_PARTY_ON"), 250, 250, 0, False, True, False)
     Exit Sub
 HandlePartySafeOn_Err:
@@ -1403,9 +1413,7 @@ Private Sub HandleUpdateHP()
                         535, 640, 530, 50, 100)
             End If
         End If
-        DrogaCounter = 0
-        DrogaCounterMax = 0
-        Call deleteCharIndexs
+            Call deleteCharIndexs
     Else
         UserStats.estado = 0
     End If
@@ -1441,8 +1449,11 @@ End Sub
 
 Private Sub HandleChangeMap()
     On Error GoTo HandleChangeMap_Err
+    Dim OldMap As Integer
+    OldMap = UserMap
     UserMap = Reader.ReadInt16()
     ResourceMap = Reader.ReadInt16()
+    Call ViewportDebug_AppendDiagLog("[S2C ChangeMap] oldMap=" & OldMap & " newMap=" & UserMap & " resource=" & ResourceMap & " pos=" & UserPos.x & "," & UserPos.y & " full=" & ViewportDebug_IsFullscreen())
     If frmComerciar.visible Then Unload frmComerciar
     If frmBancoObj.visible Then Unload frmBancoObj
     If frmEstadisticas.visible Then Unload frmEstadisticas
@@ -1465,6 +1476,10 @@ End Sub
 ' Handles the PosUpdate message.
 Private Sub HandlePosUpdate()
     On Error GoTo HandlePosUpdate_Err
+    Dim OldX As Byte
+    Dim OldY As Byte
+    OldX = UserPos.x
+    OldY = UserPos.y
     'Remove char from old position
     If MapData(UserPos.x, UserPos.y).charindex = UserCharIndex Then
         MapData(UserPos.x, UserPos.y).charindex = 0
@@ -1472,6 +1487,7 @@ Private Sub HandlePosUpdate()
     'Set new pos
     UserPos.x = Reader.ReadInt8()
     UserPos.y = Reader.ReadInt8()
+    Call ViewportDebug_AppendDiagLog("[S2C PosUpdate] map=" & UserMap & " old=" & OldX & "," & OldY & " new=" & UserPos.x & "," & UserPos.y & " full=" & ViewportDebug_IsFullscreen())
     'Set char
     MapData(UserPos.x, UserPos.y).charindex = UserCharIndex
     charlist(UserCharIndex).Pos = UserPos
@@ -1497,6 +1513,7 @@ Private Sub HandlePosUpdateUserChar()
     UserPos.y = Reader.ReadInt8()
     Dim charindex As Integer
     charindex = Reader.ReadInt16()
+    Call ViewportDebug_AppendDiagLog("[S2C PosUpdateUserChar] map=" & UserMap & " old=" & temp_x & "," & temp_y & " new=" & UserPos.x & "," & UserPos.y & " char=" & charindex & " full=" & ViewportDebug_IsFullscreen())
     'Remove char from old position
     If MapData(temp_x, temp_y).charindex = charindex Then
         MapData(temp_x, temp_y).charindex = 0
@@ -2482,11 +2499,17 @@ End Sub
 Private Sub HandleForceCharMove()
     On Error GoTo HandleForceCharMove_Err
     Dim direccion As Byte
+    Dim OldX As Byte
+    Dim OldY As Byte
     direccion = Reader.ReadInt8()
+    OldX = UserPos.x
+    OldY = UserPos.y
+    Call ViewportDebug_AppendDiagLog("[S2C ForceCharMove before] map=" & UserMap & " pos=" & OldX & "," & OldY & " h=" & direccion & " full=" & ViewportDebug_IsFullscreen())
     Moviendose = True
     Call MainTimer.Restart(TimersIndex.Walk)
     Call Char_Move_by_Head(UserCharIndex, direccion)
     Call MoveScreen(direccion)
+    Call ViewportDebug_AppendDiagLog("[S2C ForceCharMove after] map=" & UserMap & " old=" & OldX & "," & OldY & " new=" & UserPos.x & "," & UserPos.y & " h=" & direccion)
     Call UpdateMapPos
     If MapDat.Seguro = 1 Then
         frmMain.Coord.ForeColor = RGB(0, 170, 0)
@@ -3395,9 +3418,7 @@ Private Sub HandleUpdateUserStats()
     If UserStats.MinHp = 0 Then
         UserStats.estado = 1
         charlist(UserCharIndex).Invisible = False
-        DrogaCounter = 0
-        DrogaCounterMax = 0
-    Else
+        Else
         UserStats.estado = 0
     End If
     Call frmMain.UpdateStatsLayout
@@ -3937,8 +3958,7 @@ Private Sub HandleFYA()
     UserAtributos(eAtributos.Agilidad) = Reader.ReadInt8()
     UserStats.str = UserAtributos(eAtributos.Fuerza)
     UserStats.Agi = UserAtributos(eAtributos.Agilidad)
-    DrogaCounter = Reader.ReadInt16()
-    If DrogaCounter > DrogaCounterMax Then DrogaCounterMax = DrogaCounter
+    Call Reader.ReadInt16() ' Plan 25.003: DuracionEfecto se sirve via eSendSkillCdUpdate (Effect49)
     If UserStats.str >= 35 Then
         UserStats.StrState = eHighBuff
     ElseIf UserStats.str >= 25 Then
@@ -3952,9 +3972,6 @@ Private Sub HandleFYA()
         UserStats.AgiState = eMinBuff
     Else
         UserStats.AgiState = eNormal
-    End If
-    If DrogaCounter > 0 Then
-        frmMain.Contadores.enabled = True
     End If
     Call frmMain.UpdateBuff
     Exit Sub
@@ -3986,8 +4003,7 @@ End Sub
 Private Sub HandleContadores()
     On Error GoTo HandleContadores_Err
     InviCounter = Reader.ReadInt16()
-    DrogaCounter = Reader.ReadInt16()
-    If DrogaCounter > DrogaCounterMax Then DrogaCounterMax = DrogaCounter
+    Call Reader.ReadInt16() ' Plan 25.003: DuracionEfecto se sirve via eSendSkillCdUpdate (Effect49)
     frmMain.Contadores.enabled = True
     Exit Sub
 HandleContadores_Err:
@@ -5571,6 +5587,7 @@ Private Sub HandleSeguroResu()
         Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_RESURRECCION_DESACTIVADO"), 65, 190, 156, False, False, False)
         frmMain.ImgSegResu = LoadInterface("boton-fantasma-off.bmp")
     End If
+    Call Refresh_FullscreenButtons
 End Sub
 
 Private Sub HandleLegionarySecure()
@@ -5584,6 +5601,7 @@ Private Sub HandleLegionarySecure()
         Call AddtoRichTextBox(frmMain.RecTxt, JsonLanguage.Item("MENSAJE_SEGURO_LEGION_DESACTIVADO"), 65, 190, 156, False, False, False)
         frmMain.ImgLegionarySecure = LoadInterface("boton-demonio-off.bmp")
     End If
+    Call Refresh_FullscreenButtons
 End Sub
 
 Private Sub HandleStopped()
@@ -5995,6 +6013,34 @@ errhandler:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleSendSkillCdUpdate " & Effect.TypeId, Erl)
 End Sub
 
+' === Sistema venenos (TOGGLE26): handler de stacks de Hemo ===
+' Solo se recibe en el cliente del usuario envenenado (visibilidad solo al dueno).
+' Busca el efecto existente por UniqueId y actualiza su StackCount.
+' Si Stacks = 0, remueve el efecto del DeBuffList (apagar contador).
+Public Sub HandleUpdatePoisonStacks()
+    On Error GoTo errhandler
+    Dim UniqueId As Long
+    Dim Stacks As Integer
+    UniqueId = Reader.ReadInt32
+    Stacks = Reader.ReadInt16
+    Dim i As Integer
+    For i = 0 To DeBuffList.EffectCount - 1
+        If DeBuffList.EffectList(i).id = UniqueId Then
+            If Stacks <= 0 Then
+                ' Remover el efecto del listado (efecto terminado)
+                DeBuffList.EffectList(i) = DeBuffList.EffectList(DeBuffList.EffectCount - 1)
+                DeBuffList.EffectCount = DeBuffList.EffectCount - 1
+            Else
+                DeBuffList.EffectList(i).StackCount = Stacks
+            End If
+            Exit Sub
+        End If
+    Next i
+    Exit Sub
+errhandler:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleUpdatePoisonStacks", Erl)
+End Sub
+
 Public Sub HandleSendClientToggles()
     On Error GoTo errhandler
     Dim ToggleCount As Integer
@@ -6006,9 +6052,7 @@ Public Sub HandleSendClientToggles()
         If ToggleName = "hotokey-enabled" Then
             Call SetMask(FeatureToggles, eEnableHotkeys)
         End If
-        If ToggleName = "buff_timer_as_circle" Then
-            Call SetMask(FeatureToggles, eBuffTimerAsCircle)
-        End If
+
     Next i
     Exit Sub
 errhandler:

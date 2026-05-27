@@ -350,6 +350,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     cmbTipo.List(0) = JsonLanguage.Item("MENSAJE_EVENTO_CAPTURA")
     cmbTipo.List(1) = JsonLanguage.Item("MENSAJE_EVENTO_CACERIA")
     cmbTipo.List(2) = JsonLanguage.Item("MENSAJE_EVENTO_DEATHMATCH")

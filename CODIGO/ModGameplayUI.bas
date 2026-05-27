@@ -26,6 +26,18 @@ Attribute VB_Name = "ModGameplayUI"
 '
 '
 
+' ============== Viewport fullscreen toggle (PoC 2026-05-20) ==============
+' Declaraciones a nivel de modulo (subs estan al final del archivo).
+Private g_renderer_state_saved As Boolean
+Private g_pending_restore_full As Boolean
+Private Const SENDTXT_HUD_LEFT   As Long = 40
+Private Const SENDTXT_HUD_TOP    As Long = 120
+Private Const SENDTXT_HUD_WIDTH  As Long = 546
+Private Const SENDTXT_HUD_HEIGHT As Long = 24
+Private Declare Function CreateRectRgn Lib "gdi32" (ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long) As Long
+Private Declare Function DeleteObject Lib "gdi32" (ByVal hObject As Long) As Long
+Private Declare Function SetWindowRgn Lib "user32" (ByVal hWnd As Long, ByVal hRgn As Long, ByVal bRedraw As Long) As Long
+
 Public Sub SetupGameplayUI()
     frmMain.shapexy.Left = 1200
     frmMain.shapexy.Top = 1200
@@ -48,6 +60,9 @@ Public Sub SetupGameplayUI()
     frmMain.Top = 0
     frmMain.Width = D3DWindow.BackBufferWidth * screen.TwipsPerPixelX
     frmMain.Height = D3DWindow.BackBufferHeight * screen.TwipsPerPixelY
+    Call SetViewportLogicalHud
+    Call ApplyRendererHudClip
+    frmMain.renderer.ZOrder 1
     frmMain.visible = True
     ActiveInventoryTab = eInventory
     Call LoadHotkeys
@@ -116,6 +131,8 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
         Case Else
             Exit Sub
     End Select
+    ' Hook PoC viewport: registrar click para marker visual del overlay debug.
+    If tX > 0 And tY > 0 Then Call ViewportDebug_OnClick(tX, tY)
 #If DEBUGGING = 1 Then
     If EsGM And IsSet(FeatureToggles, eShowGmDebugData) Then
         Call CaptureDebugClickInfo(tX, tY)
@@ -130,8 +147,8 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
                     Dim SendSkill As Boolean
                     If UsingSkill = magia Then
                         If ModoHechizos = BloqueoLanzar Then
-                            SendSkill = IIf((mouseX >= frmMain.renderer.ScaleLeft And mouseX <= 736 + frmMain.renderer.ScaleLeft And mouseY >= frmMain.renderer.ScaleTop And _
-                                    mouseY <= frmMain.renderer.ScaleTop + 608), True, False)
+                            SendSkill = IIf((mouseX >= g_viewport_logical_left And mouseX <= g_viewport_logical_left + g_viewport_logical_width And mouseY >= g_viewport_logical_top And _
+                                    mouseY <= g_viewport_logical_top + g_viewport_logical_height), True, False)
                             If Not SendSkill Then
                                 Exit Sub
                             End If
@@ -140,15 +157,15 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
                         Else
                             If MainTimer.Check(TimersIndex.AttackSpell, False) Then
                                 If MainTimer.Check(TimersIndex.CastSpell) Then
-                                    SendSkill = IIf((mouseX >= frmMain.renderer.ScaleLeft And mouseX <= 736 + frmMain.renderer.ScaleLeft And mouseY >= frmMain.renderer.ScaleTop _
-                                            And mouseY <= frmMain.renderer.ScaleTop + 608), True, False)
+                                    SendSkill = IIf((mouseX >= g_viewport_logical_left And mouseX <= g_viewport_logical_left + g_viewport_logical_width And mouseY >= g_viewport_logical_top _
+                                            And mouseY <= g_viewport_logical_top + g_viewport_logical_height), True, False)
                                     If Not SendSkill Then
                                         Exit Sub
                                     End If
                                     Call MainTimer.Restart(TimersIndex.CastAttack)
                                 ElseIf ModoHechizos = SinBloqueo Then
-                                    SendSkill = IIf((mouseX >= frmMain.renderer.ScaleLeft And mouseX <= 736 + frmMain.renderer.ScaleLeft And mouseY >= frmMain.renderer.ScaleTop _
-                                            And mouseY <= frmMain.renderer.ScaleTop + 608), True, False)
+                                    SendSkill = IIf((mouseX >= g_viewport_logical_left And mouseX <= g_viewport_logical_left + g_viewport_logical_width And mouseY >= g_viewport_logical_top _
+                                            And mouseY <= g_viewport_logical_top + g_viewport_logical_height), True, False)
                                     If Not SendSkill Then
                                         Exit Sub
                                     End If
@@ -159,8 +176,8 @@ Public Sub OnClick(ByVal MouseButton As Long, ByVal MouseShift As Long)
                                     Exit Sub
                                 End If
                             ElseIf ModoHechizos = SinBloqueo Then
-                                SendSkill = IIf((mouseX >= frmMain.renderer.ScaleLeft And mouseX <= 736 + frmMain.renderer.ScaleLeft And mouseY >= frmMain.renderer.ScaleTop And _
-                                        mouseY <= frmMain.renderer.ScaleTop + 608), True, False)
+                                SendSkill = IIf((mouseX >= g_viewport_logical_left And mouseX <= g_viewport_logical_left + g_viewport_logical_width And mouseY >= g_viewport_logical_top And _
+                                        mouseY <= g_viewport_logical_top + g_viewport_logical_height), True, False)
                                 If Not SendSkill Then
                                     Exit Sub
                                 End If
@@ -484,6 +501,26 @@ Public Sub UserOrEquipItem(ByVal Slot As Integer, ByVal Equipped As Boolean, ByV
 End Sub
 
 Public Sub HandleKeyUp(KeyCode As Integer, Shift As Integer)
+    ' Toggles del viewport (consumen la tecla antes que cualquier hotkey).
+    ' Activos incluso con dialogos abiertos, pero no cuando el chat tiene foco.
+    ' Las teclas vienen de BindKeys (configurables via Teclas.ini).
+    If Not IsInputFocus Then
+        If KeyCode = BindKeys(e_KeyAction.eToggleViewportFullscreen).KeyCode And KeyCode <> 0 Then
+            Call ToggleViewportFullscreen
+            Exit Sub
+        ElseIf KeyCode = BindKeys(e_KeyAction.eToggleViewportDebug).KeyCode And KeyCode <> 0 Then
+            Call ViewportDebug_ToggleOverlay
+            Exit Sub
+        ElseIf ViewportDebug_IsFullscreen() Then
+            If KeyCode = BindKeys(e_KeyAction.eToggleInventoryWindow).KeyCode And KeyCode <> 0 Then
+                Call Toggle_FloatingWindow(efwInventory)
+                Exit Sub
+            ElseIf KeyCode = BindKeys(e_KeyAction.eToggleSpellsWindow).KeyCode And KeyCode <> 0 Then
+                Call Toggle_FloatingWindow(efwSpells)
+                Exit Sub
+            End If
+        End If
+    End If
     If Not IsInputFocus Then
         If Not IsDialogOpen Then
             If Accionar(KeyCode) Then
@@ -522,7 +559,16 @@ End Function
 
 Public Sub OpenAndFocusClanChat()
     If Not frmMain.SendTxt.visible Then
+        If ViewportDebug_IsFullscreen() Then
+            frmMain.SendTxtCmsg.Left = 5
+            frmMain.SendTxtCmsg.Top = VIEWPORT_FULL_HEIGHT - 32
+            frmMain.SendTxtCmsg.Width = hotkey_render_posX - 15
+            frmMain.SendTxtCmsg.Height = SENDTXT_HUD_HEIGHT
+        Else
+            Call PositionHudChatInput
+        End If
         frmMain.SendTxtCmsg.visible = True
+        frmMain.SendTxtCmsg.ZOrder 0
         frmMain.SendTxtCmsg.SetFocus
     End If
     Call DialogosClanes.toggle_dialogs_visibility(True)
@@ -532,7 +578,13 @@ Public Sub OpenChatInput()
     If Not frmCantidad.visible Then
         Call frmMain.CompletarEnvioMensajes
         StartOpenChatTime = GetTickCount
+        If ViewportDebug_IsFullscreen() Then
+            Call PositionFullscreenChatInput
+        Else
+            Call PositionHudChatInput
+        End If
         frmMain.SendTxt.visible = True
+        frmMain.SendTxt.ZOrder 0
         frmMain.SendTxt.SetFocus
     End If
 End Sub
@@ -680,6 +732,25 @@ Public Sub ClearHotkeys()
     Next i
 End Sub
 
+Public Sub ClearHotkeySlot(ByVal HotkeySlot As Integer)
+    If HotkeySlot < 0 Or HotkeySlot >= HotKeyCount Then Exit Sub
+    HotkeyList(HotkeySlot).Index = -1
+    HotkeyList(HotkeySlot).LastKnownSlot = -1
+    HotkeyList(HotkeySlot).Type = Unknown
+    HotkeyList(HotkeySlot).CommandText = ""
+    Call SaveHotkey(-1, -1, Unknown, HotkeySlot)
+    Call WriteSetHotkeySlot(CByte(HotkeySlot), -1, -1, Unknown)
+End Sub
+
+Public Sub SetHotkeyCommand(ByVal HotkeySlot As Integer, ByVal CmdText As String)
+    If HotkeySlot < 0 Or HotkeySlot >= HotKeyCount Then Exit Sub
+    HotkeyList(HotkeySlot).Type = e_HotkeyType.Command
+    HotkeyList(HotkeySlot).Index = 0
+    HotkeyList(HotkeySlot).LastKnownSlot = 0
+    HotkeyList(HotkeySlot).CommandText = CmdText
+    Call SaveHotkey(0, 0, e_HotkeyType.Command, HotkeySlot)
+End Sub
+
 Public Sub ShowInteractionMenu(ByVal FormTop As Long, _
                                 ByVal FormLeft As Long, _
                                 ByVal FormHeight As Long, _
@@ -723,3 +794,140 @@ ShowInteractionMenu_Err:
     Call RegistrarError(Err.Number, Err.Description, "ModGameplayUi.ShowInteractionMenu", Erl)
     Resume Next
 End Sub
+
+' ============== Viewport fullscreen toggle (PoC 2026-05-20) ==============
+' Plan: ia/plans/2026/mayo/20.002.viewport-fullscreen-poc.md
+' (Declaraciones a nivel de modulo movidas al principio del archivo, ver inicio.)
+
+Public Sub ToggleViewportFullscreen()
+    If g_renderer_state_saved Then
+        Call ExitViewportFullscreen
+    Else
+        Call EnterViewportFullscreen
+    End If
+End Sub
+
+Public Sub EnterViewportFullscreen()
+    On Error GoTo EnterViewportFullscreen_Err
+    If g_renderer_state_saved Then Exit Sub
+    Call ViewportDebug_AppendDiagLog("[Enter] start")
+    g_renderer_state_saved = True
+    Call SetViewportLogicalFull
+    Call ClearRendererClip
+    frmMain.renderer.ZOrder 0
+    Call Apply_FullscreenLayout(True)
+    Call Set_FullscreenHudActive(True)
+    Call Set_FullscreenGmBarActive(True)
+    Call Set_FullscreenBuffsPanelActive(True)
+    Call Set_FullscreenButtonsActive(True)
+    Call Set_FloatingWindowsActive(True)
+    If frmMain.SendTxt.visible Then
+        Call PositionFullscreenChatInput
+        frmMain.SendTxt.ZOrder 0
+    End If
+    If frmMain.SendTxtCmsg.visible Then
+        frmMain.SendTxtCmsg.Left = 5
+        frmMain.SendTxtCmsg.Top = VIEWPORT_FULL_HEIGHT - 32
+        frmMain.SendTxtCmsg.Width = hotkey_render_posX - 15
+        frmMain.SendTxtCmsg.Height = SENDTXT_HUD_HEIGHT
+        frmMain.SendTxtCmsg.ZOrder 0
+    End If
+    Call ViewportDebug_AppendDiagLog("[Enter] logical viewport FULL")
+    Call Recalc_TileEngine_Viewport
+    Call ViewportDebug_AppendDiagLog("[Enter] recalc done")
+    Call ViewportDebug_SetViewportMode(True)
+    Call ViewportDebug_AppendDiagLog("[Enter] OK")
+    Exit Sub
+EnterViewportFullscreen_Err:
+    Call ViewportDebug_AppendDiagLog("[Enter] ERROR " & Err.Number & " " & Err.Description & " line=" & Erl)
+    Call RegistrarError(Err.Number, Err.Description, "ModGameplayUI.EnterViewportFullscreen", Erl)
+    Resume Next
+End Sub
+
+Public Sub ExitViewportFullscreen()
+    On Error GoTo ExitViewportFullscreen_Err
+    If Not g_renderer_state_saved Then Exit Sub
+    Call ViewportDebug_AppendDiagLog("[Exit] start")
+    g_renderer_state_saved = False
+    Call SetViewportLogicalHud
+    Call ApplyRendererHudClip
+    Call PositionHudChatInput
+    Call Set_FloatingWindowsActive(False)
+    Call Set_FullscreenButtonsActive(False)
+    Call Set_FullscreenBuffsPanelActive(False)
+    frmMain.renderer.ZOrder 1
+    Call Set_FullscreenGmBarActive(False)
+    Call Set_FullscreenHudActive(False)
+    Call Apply_FullscreenLayout(False)
+    Call Recalc_TileEngine_Viewport
+    Call ViewportDebug_SetViewportMode(False)
+    Call ViewportDebug_AppendDiagLog("[Exit] OK")
+    Exit Sub
+ExitViewportFullscreen_Err:
+    Call ViewportDebug_AppendDiagLog("[Exit] ERROR " & Err.Number & " " & Err.Description & " line=" & Erl)
+    Call RegistrarError(Err.Number, Err.Description, "ModGameplayUI.ExitViewportFullscreen", Erl)
+    Resume Next
+End Sub
+
+Public Function Is_RendererStateFullscreen() As Boolean
+    Is_RendererStateFullscreen = g_renderer_state_saved
+End Function
+
+Public Sub Mark_PendingRestoreFullscreen()
+    g_pending_restore_full = True
+End Sub
+
+Public Sub Try_RestoreFullscreenAfterLogin()
+    On Error Resume Next
+    If g_pending_restore_full Then
+        g_pending_restore_full = False
+        If Not g_renderer_state_saved Then Call EnterViewportFullscreen
+    End If
+End Sub
+
+Private Sub PositionHudChatInput()
+    On Error Resume Next
+    frmMain.SendTxt.Left = SENDTXT_HUD_LEFT
+    frmMain.SendTxt.Top = SENDTXT_HUD_TOP
+    frmMain.SendTxt.Width = SENDTXT_HUD_WIDTH
+    frmMain.SendTxt.Height = SENDTXT_HUD_HEIGHT
+    frmMain.SendTxtCmsg.Left = SENDTXT_HUD_LEFT
+    frmMain.SendTxtCmsg.Top = SENDTXT_HUD_TOP
+    frmMain.SendTxtCmsg.Width = SENDTXT_HUD_WIDTH
+    frmMain.SendTxtCmsg.Height = SENDTXT_HUD_HEIGHT
+End Sub
+
+Private Sub PositionFullscreenChatInput()
+    On Error Resume Next
+    frmMain.SendTxt.Left = 5
+    frmMain.SendTxt.Top = VIEWPORT_FULL_HEIGHT - 32
+    frmMain.SendTxt.Width = hotkey_render_posX - 15
+    frmMain.SendTxt.Height = SENDTXT_HUD_HEIGHT
+End Sub
+
+Private Sub ApplyRendererHudClip()
+    On Error GoTo ApplyRendererHudClip_Err
+    Dim hRegion As Long
+    hRegion = CreateRectRgn(g_viewport_logical_left, g_viewport_logical_top, g_viewport_logical_left + g_viewport_logical_width, g_viewport_logical_top + g_viewport_logical_height)
+    If hRegion <> 0 Then
+        If SetWindowRgn(frmMain.renderer.hWnd, hRegion, 1) = 0 Then
+            Call DeleteObject(hRegion)
+        End If
+    End If
+    Exit Sub
+ApplyRendererHudClip_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModGameplayUI.ApplyRendererHudClip", Erl)
+    Resume Next
+End Sub
+
+Private Sub ClearRendererClip()
+    On Error GoTo ClearRendererClip_Err
+    Call SetWindowRgn(frmMain.renderer.hWnd, 0, 1)
+    Exit Sub
+ClearRendererClip_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModGameplayUI.ClearRendererClip", Erl)
+    Resume Next
+End Sub
+
+' SetHudControlsVisible legacy fue reemplazado por ModFullscreenLayout.Apply_FullscreenLayout.
+' Plan: ia/plans/2026/mayo/21.002.viewport-fullscreen-hud-flotante.md (Etapa 1).

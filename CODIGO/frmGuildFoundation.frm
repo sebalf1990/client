@@ -187,5 +187,6 @@ Me.SetFocus
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
 Call FormParser.Parse_Form(Me)
 End Sub

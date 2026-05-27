@@ -212,6 +212,14 @@ Sub AddtoRichTextBox2(ByRef RichTextBox As RichTextBox, _
     Dim Pos      As Long
     Dim ret      As Long
     Dim bHoldBar As Boolean
+    ' Hook PoC viewport: mirror al overlay de debug si el target es la consola del juego.
+    If RichTextBox Is frmMain.RecTxt Then
+        If red = -1 Then
+            Call ViewportDebug_PushConsoleLine(text, 255, 255, 255, bold, italic, Not bCrLf)
+        Else
+            Call ViewportDebug_PushConsoleLine(text, red, green, blue, bold, italic, Not bCrLf)
+        End If
+    End If
     Call EnableURLDetect(frmMain.RecTxt.hWnd, frmMain.hWnd)
     With RichTextBox
         If Len(.text) > 20000 Then
@@ -268,6 +276,14 @@ Sub AddtoRichTextBox(ByRef RichTextBox As RichTextBox, _
     Dim Pos      As Long
     Dim ret      As Long
     Dim bHoldBar As Boolean
+    ' Hook PoC viewport: mirror al overlay de fullscreen si el target es la consola del juego.
+    If RichTextBox Is frmMain.RecTxt Then
+        If red = -1 Then
+            Call ViewportDebug_PushConsoleLine(text, 255, 255, 255, bold, italic, False)
+        Else
+            Call ViewportDebug_PushConsoleLine(text, red, green, blue, bold, italic, False)
+        End If
+    End If
     Call EnableURLDetect(frmMain.RecTxt.hWnd, frmMain.hWnd)
     With RichTextBox
         If Len(.text) > 20000 Then
@@ -480,6 +496,7 @@ Sub SetConnected()
     Connected = True
     Call frmConnect.AuthSocket.Close
     Call ModGameplayUI.SetupGameplayUI
+    Call ModGameplayUI.Try_RestoreFullscreenAfterLogin
     Seguido = False
     CharindexSeguido = 0
     OffsetLimitScreen = 32
@@ -537,18 +554,42 @@ Sub MoveTo(ByVal Heading As E_Heading, ByVal Dumb As Boolean)
             Heading = newHeading
         End If
     End If
+    Static LastExitMapAttemptTime As Long
     Dim LegalOk As Boolean
+    Dim TargetX As Integer
+    Dim TargetY As Integer
+    Dim ExitMapAttempt As Boolean
+    Dim ExitMapInterval As Long
     If cartel Then cartel = False
+    TargetX = UserPos.x
+    TargetY = UserPos.y
     Select Case Heading
         Case E_Heading.NORTH
-            LegalOk = LegalPos(UserPos.x, UserPos.y - 1, Heading)
+            TargetY = UserPos.y - 1
         Case E_Heading.EAST
-            LegalOk = LegalPos(UserPos.x + 1, UserPos.y, Heading)
+            TargetX = UserPos.x + 1
         Case E_Heading.south
-            LegalOk = LegalPos(UserPos.x, UserPos.y + 1, Heading)
+            TargetY = UserPos.y + 1
         Case E_Heading.WEST
-            LegalOk = LegalPos(UserPos.x - 1, UserPos.y, Heading)
+            TargetX = UserPos.x - 1
     End Select
+    ExitMapAttempt = (TargetX < XMinMapSize Or TargetX > XMaxMapSize Or TargetY < YMinMapSize Or TargetY > YMaxMapSize)
+    If ExitMapAttempt Then
+        Call ViewportDebug_AppendDiagLog("[MoveTo EXIT attempt] map=" & UserMap & " pos=" & UserPos.x & "," & UserPos.y & " target=" & TargetX & "," & TargetY & " h=" & Heading & " full=" & ViewportDebug_IsFullscreen())
+        ExitMapInterval = gIntervals.Walk
+        If UserCharIndex > 0 Then
+            If charlist(UserCharIndex).Speeding > 0 Then ExitMapInterval = CLng(CDbl(ExitMapInterval) / CDbl(charlist(UserCharIndex).Speeding))
+        End If
+        If ExitMapInterval > 0 And LastExitMapAttemptTime <> 0 Then
+            If FrameTime - LastExitMapAttemptTime < ExitMapInterval Then
+                Call ViewportDebug_AppendDiagLog("[MoveTo EXIT throttle] dt=" & (FrameTime - LastExitMapAttemptTime) & " interval=" & ExitMapInterval)
+                Exit Sub
+            End If
+        End If
+        LegalOk = True
+    Else
+        LegalOk = LegalPos(TargetX, TargetY, Heading)
+    End If
     If LegalOk And CanMove() Then
         If Not UserDescansar Then
             If UserMacro.Activado Then
@@ -560,11 +601,16 @@ Sub MoveTo(ByVal Heading As E_Heading, ByVal Dumb As Boolean)
                 PescandoEspecial = False
             End If
             If WriteWalk(Heading) Then 'We only walk if we are not meditating or resting
-                Moviendose = True
                 Call MainTimer.Restart(TimersIndex.Walk)
-                Call Char_Move_by_Head(UserCharIndex, Heading)
-                Call MoveScreen(Heading)
-                Call checkTutorial
+                If ExitMapAttempt Then
+                    LastExitMapAttemptTime = FrameTime
+                    Call ViewportDebug_AppendDiagLog("[MoveTo EXIT sent] skip-local pos=" & UserPos.x & "," & UserPos.y & " h=" & Heading)
+                Else
+                    Moviendose = True
+                    Call Char_Move_by_Head(UserCharIndex, Heading)
+                    Call MoveScreen(Heading)
+                    Call checkTutorial
+                End If
                 Dim i As Integer
                 For i = 1 To LastChar
                     If charlist(i).Invisible And Not EsGM And Not charlist(i).Meditating Then

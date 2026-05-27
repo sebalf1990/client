@@ -198,8 +198,8 @@ Private Sub Engine_InitExtras()
     With Render_Main_Rect
         .Top = 0
         .Left = 0
-        .Right = frmMain.renderer.ScaleWidth
-        .Bottom = frmMain.renderer.ScaleHeight
+        .Right = VIEWPORT_FULL_WIDTH
+        .Bottom = VIEWPORT_FULL_HEIGHT
     End With
     Call Engine_InitColors
     ' Sistemas dependientes de el motor grafico
@@ -305,6 +305,7 @@ End Sub
 
 Public Sub EngineReset()
     On Error GoTo Engine_Reset_Err
+    Call ReleaseScreenStatusFX
     Call SpriteBatch.Release
     Set SpriteBatch = Nothing
     Call DirectDevice.Reset(D3DWindow)
@@ -362,6 +363,7 @@ End Sub
 
 Public Sub Engine_Deinit()
     On Error GoTo Engine_Deinit_Err
+    Call ReleaseScreenStatusFX
     Erase MapData
     Erase charlist
     Set DirectDevice = Nothing
@@ -760,48 +762,7 @@ Public Sub render()
     FramesPerSecCounter = FramesPerSecCounter + 1
     timerElapsedTime = GetElapsedTime()
     timerTicksPerFrame = timerElapsedTime * engineBaseSpeed
-    If frmMain.Contadores.enabled Then
-        Dim PosY As Integer: PosY = -10 + gameplay_render_offset.y
-        Dim PosX As Integer: PosX = 640 + gameplay_render_offset.x
-        If DrogaCounter > 0 Then
-            Call RGBAList(temp_array, 0, 153, 0)
-            If DrogaCounter > 15 Then
-                Call RGBAList(temp_array, 0, 153, 0)
-            ElseIf DrogaCounter > 10 Then
-                Call RGBAList(temp_array, 255, 255, 0)
-            Else
-                Dim State As Long
-                State = (FrameTime / 1000) Mod 2
-                Dim alpha As Byte
-                Call RGBAList(temp_array, 230, 0, 0)
-            End If
-            PosY = PosY + 15
-            If IsSet(FeatureToggles, eBuffTimerAsCircle) And DrogaCounterMax > 0 Then
-                Const BUFF_CIRCLE_RADIUS As Integer = 14
-                Const BUFF_CIRCLE_BORDER As Integer = 2
-                Dim buffAngle As Single
-                buffAngle = (CSng(DrogaCounter) / CSng(DrogaCounterMax)) * 360
-                If buffAngle > 360 Then buffAngle = 360
-                Dim buffCx As Integer
-                Dim buffCy As Integer
-                buffCx = PosX + 40
-                buffCy = PosY + 30
-                Dim border_array(3) As RGBA
-                Call RGBAList(border_array, 0, 0, 0, 220)
-                Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS + BUFF_CIRCLE_BORDER, border_array(0), 360)
-                Dim bg_array(3) As RGBA
-                Call RGBAList(bg_array, 80, 80, 80, 32)
-                Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS, bg_array(0), 360)
-                Dim fill_array(3) As RGBA
-                Call RGBAList(fill_array, temp_array(0).r, temp_array(0).G, temp_array(0).b, 64)
-                If buffAngle > 0 Then
-                    Call Engine_Draw_Pie(buffCx, buffCy, BUFF_CIRCLE_RADIUS, fill_array(0), buffAngle)
-                End If
-            Else
-                Call Engine_Text_Render(JsonLanguage.Item("MENSAJE_542") & CLng(DrogaCounter) & "s", PosX, PosY, temp_array, 1, True, 0, 160)
-            End If
-        End If
-    End If
+
     Call RenderPickUpObjText
     If FadeInAlpha > 0 Then
         Call Engine_Draw_Box(0, 0, frmMain.renderer.ScaleWidth, frmMain.renderer.ScaleHeight, RGBA_From_Comp(0, 0, 0, FadeInAlpha))
@@ -820,6 +781,17 @@ Public Sub render()
         End If
     #End If
     
+    ' Overlays de estado: Neurotoxina usa vignette organico mientras el debuff esta activo.
+    ' Dibujar al final del frame evita que el batch de RenderScreen lo tape o lo descarte.
+    Call RenderScreenStatusFX
+    ' Overlay del PoC viewport (debug): siempre al final, antes del Present.
+    Call Render_ViewportDebugOverlay
+    ' HUD vital en modo viewport fullscreen (Etapa 2 plan 21.002)
+    Call Render_FullscreenHud
+        Call Render_FullscreenGmBar
+    ' Buffs, debuffs y cooldowns modernos en FULL (Etapa 4 plan 21.002).
+    Call Render_FullscreenBuffsPanel
+
     #If DXUI = 0 Then
         Call Engine_EndScene(Render_Main_Rect)
     #End If
@@ -939,8 +911,8 @@ Public Sub Mascota_Render(ByVal charindex As Integer, ByVal PixelOffsetX As Inte
     Dim target_x As Long
     Dim target_y As Long
     'target_charindex in pixels on render:
-    target_x = (frmMain.renderer.ScaleWidth / 2) - ((UserPos.x - AddtoUserPos.x) - charlist(charindex).Pos.x) * 32 + charlist(charindex).MoveOffsetX
-    target_y = (frmMain.renderer.ScaleHeight / 2) - ((UserPos.y - AddtoUserPos.y) - charlist(charindex).Pos.y) * 32 + charlist(charindex).MoveOffsetY
+    target_x = (g_viewport_logical_left + g_viewport_logical_width / 2) - ((UserPos.x - AddtoUserPos.x) - charlist(charindex).Pos.x) * 32 + charlist(charindex).MoveOffsetX
+    target_y = (g_viewport_logical_top + g_viewport_logical_height / 2) - ((UserPos.y - AddtoUserPos.y) - charlist(charindex).Pos.y) * 32 + charlist(charindex).MoveOffsetY
     Dim dir_vector As Position
     Dim dist       As Long
     Dim dist_x     As Long
@@ -957,12 +929,12 @@ Public Sub Mascota_Render(ByVal charindex As Integer, ByVal PixelOffsetX As Inte
     'If (RandomNumber(1, 70) = 1) Then direccion = Not direccion
     angle = angle + RandomNumber(2, 10) * IIf(direccion, 1, -1) / 1500 * timerElapsedTime
     If dist_x > 40 Then
-        mascota.PosX = mascota.PosX + (dir_vector.x / (frmMain.renderer.ScaleWidth / 2)) * timerElapsedTime / 1000 * dist * 3  ' 256 como constante no le da aceleración.
+        mascota.PosX = mascota.PosX + (dir_vector.x / (g_viewport_logical_width / 2)) * timerElapsedTime / 1000 * dist * 3  ' 256 como constante no le da aceleración.
         isAnimated = 1
     End If
     mascota.PosX = mascota.PosX - LastOffset2X
     If dist_y > 40 Then
-        mascota.PosY = mascota.PosY + (dir_vector.y / (frmMain.renderer.ScaleHeight / 2)) * timerElapsedTime / 1000 * dist * 3
+        mascota.PosY = mascota.PosY + (dir_vector.y / (g_viewport_logical_height / 2)) * timerElapsedTime / 1000 * dist * 3
         isAnimated = 1
     End If
     mascota.PosY = mascota.PosY - LastOffset2Y
@@ -2157,8 +2129,16 @@ Public Sub DrawMainInventory()
     Dim InvRect As RECT
     InvRect.Left = 0
     InvRect.Top = 0
-    InvRect.Right = frmMain.picInv.ScaleWidth
-    InvRect.Bottom = frmMain.picInv.ScaleHeight
+    Dim targetHwnd As Long
+    If Is_FloatingInventoryVisible() Then
+        InvRect.Right = FloatingInventoryWidth()
+        InvRect.Bottom = FloatingInventoryHeight()
+        targetHwnd = FloatingInventoryHwnd()
+    Else
+        InvRect.Right = frmMain.picInv.ScaleWidth
+        InvRect.Bottom = frmMain.picInv.ScaleHeight
+        targetHwnd = frmMain.picInv.hWnd
+    End If
     ' Comenzamos la escena
     Call Engine_BeginScene
     ' Dibujamos el fondo del inventario principal
@@ -2167,8 +2147,10 @@ Public Sub DrawMainInventory()
     Call frmMain.Inventario.DrawInventory
     ' Dibujamos item arrastrado
     Call frmMain.Inventario.DrawDraggedItem
+    ' Chrome de la ventana flotante via DX (atomico con items)
+    Call Render_FloatingInventoryChrome
     ' Presentamos la escena
-    Call Engine_EndScene(InvRect, frmMain.picInv.hWnd)
+    Call Engine_EndScene(InvRect, targetHwnd)
     Exit Sub
 DrawMainInventory_Err:
     Call RegistrarError(Err.Number, Err.Description, "engine.DrawMainInventory", Erl)
@@ -3685,34 +3667,6 @@ Engine_Draw_Load_Err:
     Resume Next
 End Sub
 
-Public Sub Engine_Draw_Pie(ByVal cx As Integer, ByVal cy As Integer, ByVal radius As Integer, color As RGBA, ByVal angle As Single, Optional ByVal segments As Integer = 48)
-    On Error GoTo Engine_Draw_Pie_Err
-    If angle <= 0 Or radius <= 0 Then Exit Sub
-    If angle > 360 Then angle = 360
-    Call RGBAList(temp_rgb, color.r, color.G, color.b, color.a)
-    Call SpriteBatch.SetTexture(Nothing)
-    Call SpriteBatch.SetAlpha(False)
-    Dim arcRad As Single
-    arcRad = angle * PI / 180
-    Dim step As Single
-    step = arcRad / segments
-    Dim i As Integer
-    Dim t1 As Single, t2 As Single
-    Dim x1 As Single, y1 As Single, x2 As Single, y2 As Single
-    For i = 0 To segments - 1
-        t1 = i * step
-        t2 = (i + 1) * step
-        x1 = cx + radius * Sin(t1)
-        y1 = cy - radius * Cos(t1)
-        x2 = cx + radius * Sin(t2)
-        y2 = cy - radius * Cos(t2)
-        Call SpriteBatch.DrawTriangle(cx, cy, CLng(x1), CLng(y1), CLng(x2), CLng(y2), temp_rgb())
-    Next i
-    Exit Sub
-Engine_Draw_Pie_Err:
-    Call RegistrarError(Err.Number, Err.Description, "engine.Engine_Draw_Pie", Erl)
-    Resume Next
-End Sub
 
 Public Sub Engine_Draw_Box_Border(ByVal x As Integer, ByVal y As Integer, ByVal Width As Integer, ByVal Height As Integer, color As RGBA, ColorLine As RGBA)
     On Error GoTo Engine_Draw_Box_Border_Err

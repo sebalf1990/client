@@ -21,15 +21,17 @@ Public MinLimiteX      As Integer
 Public MaxLimiteX      As Integer
 Public MinLimiteY      As Integer
 Public MaxLimiteY      As Integer
-Private Const AREA_DIM As Byte = 12
+Private Const AREA_DIM    As Byte = 12
+Private Const AREA_RADIUS As Byte = 2
+Private Const AREA_SIDE   As Byte = 5
 
 Public Sub CambioDeArea(ByVal x As Byte, ByVal y As Byte)
     On Error GoTo CambioDeArea_Err
     Dim loopX As Long, loopY As Long
-    MinLimiteX = (x \ AREA_DIM - 1) * AREA_DIM
-    MaxLimiteX = MinLimiteX + (AREA_DIM * 3) - 1
-    MinLimiteY = (y \ AREA_DIM - 1) * AREA_DIM
-    MaxLimiteY = MinLimiteY + (AREA_DIM * 3) - 1
+    MinLimiteX = (x \ AREA_DIM - AREA_RADIUS) * AREA_DIM
+    MaxLimiteX = MinLimiteX + (AREA_DIM * AREA_SIDE) - 1
+    MinLimiteY = (y \ AREA_DIM - AREA_RADIUS) * AREA_DIM
+    MaxLimiteY = MinLimiteY + (AREA_DIM * AREA_SIDE) - 1
     For loopX = 1 To 100
         For loopY = 1 To 100
             If (loopY < MinLimiteY) Or (loopY > MaxLimiteY) Or (loopX < MinLimiteX) Or (loopX > MaxLimiteX) Then

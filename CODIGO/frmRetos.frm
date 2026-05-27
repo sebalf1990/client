@@ -512,12 +512,13 @@ Private Sub Cerrar_MouseMove(Button As Integer, Shift As Integer, x As Single, y
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Me.Picture = LoadInterface("ventanaretos.bmp")
     CAMPO_CORTO.Picture = LoadInterface("campo-corto.bmp")
     Jugador(0) = userName
     PocionesRojas = False
     CaenItems = False
-    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call Aplicar_Transparencia(Me.hWnd, ModMenuTransparency.g_menu_alpha)
     Call FormParser.Parse_Form(Me)
 End Sub
 

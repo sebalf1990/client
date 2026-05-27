@@ -79,6 +79,7 @@ Private Sub btnCrear_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     ListRefresh
 End Sub
 

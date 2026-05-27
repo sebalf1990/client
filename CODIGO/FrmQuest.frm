@@ -332,6 +332,7 @@ Attribute VB_Exposed = False
 '
 '
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
     detalle.BackColor = RGB(11, 11, 11)
     PlayerView.BackColor = RGB(11, 11, 11)
@@ -339,7 +340,7 @@ Private Sub Form_Load()
     Me.Picture = LoadInterface("ventanadetallemision.bmp")
     lblRepetible.Caption = JsonLanguage.Item("MENSAJE_MISION_REPETIBLE")
     ListView2.ColumnHeaders.Add , , "typeReward", 0
-    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call Aplicar_Transparencia(Me.hWnd, ModMenuTransparency.g_menu_alpha)
     Exit Sub
 Form_Load_Err:
     Call RegistrarError(Err.Number, Err.Description, "FrmQuests.Form_Load", Erl)

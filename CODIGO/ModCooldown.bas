@@ -37,8 +37,21 @@ Private Sub DrawEffectCd(ByVal x As Integer, ByVal y As Integer, ByRef Effect As
         angle = 0
     End If
     Call Engine_Draw_Load(x, y, CdDrawSize, CdDrawSize, colorCooldown, angle)
-    If Effect.StackCount > 1 Then
+    ' Para venenos (ClientEffectTypeId 43-48 y 50-52 = venenos/untados) se muestra desde 1
+    ' porque incluso 1 stack es informacion relevante para el envenenado.
+    Dim showStack As Boolean
+    showStack = (Effect.StackCount > 1)
+    If Not showStack Then
+        If Effect.StackCount > 0 And ((Effect.TypeId >= 43 And Effect.TypeId <= 48) Or (Effect.TypeId >= 50 And Effect.TypeId <= 52)) Then showStack = True
+    End If
+    If showStack Then
         RenderText Effect.StackCount, x - 5, y + HalfCDDrawSize - 12, COLOR_WHITE, 4, False
+    ElseIf Effect.duration > 0 Then
+        ' Plan 25.003: contador de segundos restantes tambien en HUD legacy.
+        Dim remaining As Long
+        remaining = (Effect.duration - (CurrTime - Effect.startTime) + 999) \ 1000
+        If remaining < 0 Then remaining = 0
+        Call Engine_Text_Render(CStr(remaining), x - HalfCDDrawSize + 2, y + HalfCDDrawSize - 12, COLOR_WHITE, 1, False)
     End If
 End Sub
 
@@ -77,7 +90,6 @@ Public Sub renderCooldowns(ByVal x As Integer, ByVal y As Integer)
         y = y + CdDrawSize + Margin
     End If
     If CDList.EffectCount > 0 Then
-        y = Render_Main_Rect.Bottom - CdDrawSize - Margin + gameplay_render_offset.y
         For i = 0 To CDList.EffectCount - 1
             Call DrawEffectCd(CurrentX, y, CDList.EffectList(i), CurrTime, colors)
             CurrentX = CurrentX - CdDrawSize - Margin

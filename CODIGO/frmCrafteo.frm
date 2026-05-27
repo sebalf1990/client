@@ -131,7 +131,8 @@ Private Sub Craftear_Click()
 End Sub
 
 Private Sub Form_Load()
-    Call Aplicar_Transparencia(Me.hWnd, 240)
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
+    Call Aplicar_Transparencia(Me.hWnd, ModMenuTransparency.g_menu_alpha)
     Call FormParser.Parse_Form(Me)
 End Sub
 

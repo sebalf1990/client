@@ -140,6 +140,7 @@ Attribute VB_Exposed = False
 '
 '
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
 End Sub
 
 Private Sub Label2_Click()

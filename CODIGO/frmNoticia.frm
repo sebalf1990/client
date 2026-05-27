@@ -199,6 +199,7 @@ End If
 End Function
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
 
 Call Aplicar_Transparencia(Me.hwnd, 180)
 End Sub

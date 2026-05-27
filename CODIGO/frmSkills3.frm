@@ -1331,6 +1331,7 @@ puntos.Caption = "Puntos:" & Alocados
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
 
 
 'Nombres de los skills

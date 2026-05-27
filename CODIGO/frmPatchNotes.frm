@@ -62,6 +62,7 @@ Private Sub cmdNext_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Set cNextButton = New clsGraphicalButton
     Call cNextButton.Initialize(cmdNext, "boton-aceptar-default.bmp", "boton-aceptar-over.bmp", "boton-aceptar-off.bmp", Me)
 End Sub

@@ -305,6 +305,7 @@ Command4_MouseMove_Err:
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
     Call FormParser.Parse_Form(Me)
     indice = 1

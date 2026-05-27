@@ -60,6 +60,18 @@ Public Sub Initialize(ByRef LPic As PictureBox, ByVal ForeColor As Long)
     ListPic.Cls
 End Sub
 
+Public Sub BindPicture(ByRef LPic As PictureBox)
+    On Error GoTo BindPicture_Err
+    Set ListPic = LPic
+    ListPic.ForeColor = p_ForeColor
+    If p_Pixel_Alto > 0 Then VisibleCount = ListPic.ScaleHeight \ p_Pixel_Alto
+    Call Dibujar
+    Exit Sub
+BindPicture_Err:
+    Call RegistrarError(Err.Number, Err.Description, "clsGraphicalList.BindPicture", Erl)
+    Resume Next
+End Sub
+
 Public Property Get List(ByVal Index As Integer) As String
     List = lista(Index)
 End Property

@@ -55,6 +55,7 @@ Sub SwitchMap(ByVal map As Integer, Optional ByVal NewResourceMap As Integer = 0
     Dim OldMapHadSnow As Boolean: OldMapHadSnow = (MapDat.NIEVE = 1)
     'Cargamos el mapa.
     Call Recursos.CargarMapa(ResourceMap)
+    Call ViewportNeighbor_PrepareForMap(ResourceMap)
     map_light = global_light
     Call DibujarMiniMapa
     If isLogged Then Call NameMapa(ResourceMap)

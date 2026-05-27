@@ -299,6 +299,7 @@ Form_KeyPress_Err:
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
     Me.Picture = LoadInterface("banco.bmp")
     Call FormParser.Parse_Form(Me)

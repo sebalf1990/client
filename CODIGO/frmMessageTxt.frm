@@ -325,6 +325,7 @@ Private Sub cancelCmd_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Dim I As Long
     
     For I = 0 To 9

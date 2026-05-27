@@ -467,6 +467,7 @@ Iniciar_Labels_Err:
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Iniciar_Labels
     showStatsLabels
     loadButtons

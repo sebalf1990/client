@@ -152,6 +152,33 @@ Dim HEIGHT_MAIN_INVENTORY As Integer
 #End If
 End Sub
 
+Public Sub BindWindow(ByRef InvPic As PictureBox, Optional ByVal Width As Integer = 0, Optional ByVal Height As Integer = 0, Optional ByVal OffsetX As Integer = 0, Optional ByVal OffsetY As Integer = 0, Optional ByVal SpaceX As Integer = 0, Optional ByVal SpaceY As Integer = 0, Optional MIDSPACE As Byte = 0)
+    On Error GoTo BindWindow_Err
+    Set InventoryWindow = InvPic
+    If Width = 0 Then Width = InvPic.ScaleWidth
+    If Height = 0 Then Height = InvPic.ScaleHeight
+    InvWidth = Width
+    InvHeight = Height
+    InvOffsetX = OffsetX
+    InvOffsetY = OffsetY
+    ITEM_OFFSET_X = ITEM_SIZE + SpaceX
+    ITEM_OFFSET_Y = ITEM_SIZE + SpaceY
+    ITEMS_PER_ROW = InvWidth \ ITEM_OFFSET_X
+    HALF_BORDER_X = SpaceX \ 2
+    HALF_BORDER_Y = SpaceY \ 2
+    MAININVENTORY_MIDSPACE = MIDSPACE
+    If isInventory Then
+        Dim aux As Single
+        aux = MAX_NORMAL_INVENTORY_SLOTS / ITEMS_PER_ROW
+        HEIGHT_MAIN_INVENTORY = IIf(aux <> Int(aux), Int(aux) + 1, aux) * ITEM_OFFSET_Y
+    End If
+    InvNeedsRedraw = True
+    Exit Sub
+BindWindow_Err:
+    Call RegistrarError(Err.Number, Err.Description, "clsGrapchicalInventory.BindWindow", Erl)
+    Resume Next
+End Sub
+
 Public Sub SelectGold()
     On Error GoTo SelectGold_Err
     'Sets the gold as the currently selected item
@@ -636,8 +663,16 @@ Private Sub InventoryWindow_MouseMove(Button As Integer, Shift As Integer, x As 
         InvNeedsRedraw = True
     End If
     If gDragState.active Then
-        gDragState.PosX = x + InventoryWindow.Left + InventoryWindow.Container.Left
-        gDragState.PosY = y + InventoryWindow.Top + InventoryWindow.Container.Top
+        Dim parentLeft As Long
+        Dim parentTop As Long
+        parentLeft = 0
+        parentTop = 0
+        If Not (TypeOf InventoryWindow.Container Is Form) Then
+            parentLeft = InventoryWindow.Container.Left
+            parentTop = InventoryWindow.Container.Top
+        End If
+        gDragState.PosX = x + InventoryWindow.Left + parentLeft
+        gDragState.PosY = y + InventoryWindow.Top + parentTop
     End If
     Exit Sub
 InventoryWindow_MouseMove_Err:

@@ -257,6 +257,7 @@ Private Sub eventNews_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Me.Picture = LoadInterface("board.bmp")
     MakeFormTransparent Me, vbBlack    'Set the Form "transparent by color."
 End Sub

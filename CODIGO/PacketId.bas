@@ -222,6 +222,7 @@ Public Enum ServerPacketID
     eNpcRadarUserCaos
     eNpcRadarPartyMember
     eNpcRadarClanMember
+    eUpdatePoisonStacks ' Sistema venenos TOGGLE26
     eMaxPacket
     [PacketCount]
 End Enum

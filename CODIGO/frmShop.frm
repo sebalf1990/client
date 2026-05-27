@@ -207,6 +207,7 @@ Attribute VB_Exposed = False
 Private previewBodyOverrideId As Long
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     Me.Picture = LoadInterface("ventanatiendaao20.bmp")
     Label1.Caption = JsonLanguage.Item("MENSAJE_TRANSACCION_RELOGUEO")
     Call ResetShopPreview

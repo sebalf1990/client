@@ -960,6 +960,74 @@ Begin VB.Form frmMain
          Width           =   408
       End
    End
+   Begin VB.PictureBox picFullscreenButtons
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      BackColor       =   &H00000000&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   2370
+      Left            =   12840
+      ScaleHeight     =   158
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   158
+      TabIndex        =   46
+      TabStop         =   0   'False
+      Top             =   8310
+      Visible         =   0   'False
+      Width           =   2370
+   End
+   Begin VB.PictureBox picFullInvWindow
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      BackColor       =   &H00000000&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   4650
+      Left            =   4050
+      ScaleHeight     =   310
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   250
+      TabIndex        =   47
+      TabStop         =   0   'False
+      Top             =   2700
+      Visible         =   0   'False
+      Width           =   3750
+   End
+   Begin VB.PictureBox picFullSpellWindow
+      Appearance      =   0  'Flat
+      AutoRedraw      =   -1  'True
+      BackColor       =   &H00000000&
+      BorderStyle     =   0  'None
+      ForeColor       =   &H80000008&
+      Height          =   4650
+      Left            =   8100
+      ScaleHeight     =   310
+      ScaleMode       =   3  'Pixel
+      ScaleWidth      =   250
+      TabIndex        =   48
+      TabStop         =   0   'False
+      Top             =   2700
+      Visible         =   0   'False
+      Width           =   3750
+      Begin VB.PictureBox picFullSpellList
+         Appearance      =   0  'Flat
+         AutoRedraw      =   -1  'True
+         BackColor       =   &H00000000&
+         BorderStyle     =   0  'None
+         ForeColor       =   &H00FFFFFF&
+         Height          =   3000
+         Left            =   90
+         ScaleHeight     =   200
+         ScaleMode       =   3  'Pixel
+         ScaleWidth      =   238
+         TabIndex        =   49
+         TabStop         =   0   'False
+         Top             =   420
+         Visible         =   0   'False
+         Width           =   3570
+      End
+   End
    Begin VB.PictureBox renderer 
       Appearance      =   0  'Flat
       BackColor       =   &H00000000&
@@ -974,14 +1042,14 @@ Begin VB.Form frmMain
          Strikethrough   =   0   'False
       EndProperty
       ForeColor       =   &H80000008&
-      Height          =   9120
-      Left            =   120
-      ScaleHeight     =   608
+      Height          =   11520
+      Left            =   0
+      ScaleHeight     =   768
       ScaleMode       =   3  'Pixel
-      ScaleWidth      =   736
+      ScaleWidth      =   1024
       TabIndex        =   4
-      Top             =   2280
-      Width           =   11040
+      Top             =   0
+      Width           =   15360
    End
    Begin VB.Image btnZoomIn 
       Height          =   195
@@ -1935,31 +2003,8 @@ Private Sub Contadores_Timer()
     If InviCounter > 0 Then
         InviCounter = InviCounter - 1
     End If
-    If DrogaCounter > 0 Then
-        DrogaCounter = DrogaCounter - 1
-        If DrogaCounter <= 12 And DrogaCounter > 0 Then
-            Call ao20audio.StopWav(SND_DOPA)
-            Call ao20audio.PlayWav(SND_DOPA)
-            If UserStats.StrState <> eBlink Then
-                UserStats.StrState = eBlink
-                UserStats.AgiState = eBlink
-            End If
-            If DrogaCounter Mod 2 = 0 Then
-                frmMain.Fuerzalbl.ForeColor = vbWhite
-                frmMain.AgilidadLbl.ForeColor = vbWhite
-            Else
-                frmMain.Fuerzalbl.ForeColor = RGB(204, 0, 0)
-                frmMain.AgilidadLbl.ForeColor = RGB(204, 0, 0)
-            End If
-        End If
-    End If
-    If InviCounter = 0 And DrogaCounter = 0 Then
+    If InviCounter = 0 Then
         Contadores.enabled = False
-        DrogaCounterMax = 0
-        If UserStats.AgiState <> eNormal Then
-            UserStats.AgiState = eNormal
-            UserStats.StrState = eNormal
-        End If
     End If
     Exit Sub
 Contadores_Timer_Err:
@@ -2320,6 +2365,7 @@ Private Sub Form_Unload(Cancel As Integer)
         Call svb_shutdown_steam
     #End If
     Call DisableURLDetect
+    Call ViewportDebug_DisableMouseWheel
     Call ao20audio.PauseAllAudio
     Exit Sub
 Form_Unload_Err:
@@ -3164,6 +3210,156 @@ Panel_MouseMove_Err:
     Resume Next
 End Sub
 
+
+Private Sub picFullscreenButtons_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo picFullscreenButtons_MouseUp_Err
+    If Button = vbLeftButton Then Call Handle_FullscreenButtonsClick(x, y)
+    Exit Sub
+picFullscreenButtons_MouseUp_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullscreenButtons_MouseUp", Erl)
+    Resume Next
+End Sub
+
+Private Sub picFullscreenButtons_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call Handle_FullscreenButtonsMouseMove(x, y)
+End Sub
+
+
+Private Sub picFullInvWindow_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseDown(efwInventory, Button, x, y)
+End Sub
+
+Private Sub picFullInvWindow_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseMove(efwInventory, Button, x, y)
+End Sub
+
+Private Sub picFullInvWindow_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseUp(efwInventory, Button, x, y)
+End Sub
+
+Private Sub picFullInvWindow_DblClick()
+    On Error GoTo picFullInvWindow_DblClick_Err
+    If Not picFullInvWindow.visible Then Exit Sub
+    Call UserItemClick
+    Exit Sub
+picFullInvWindow_DblClick_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullInvWindow_DblClick", Erl)
+    Resume Next
+End Sub
+
+Private Sub picFullSpellWindow_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseDown(efwSpells, Button, x, y)
+End Sub
+
+Private Sub picFullSpellWindow_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseMove(efwSpells, Button, x, y)
+End Sub
+
+Private Sub picFullSpellWindow_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    Call FloatingWindow_MouseUp(efwSpells, Button, x, y)
+End Sub
+
+Private Sub picFullSpellList_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo picFullSpellList_MouseDown_Err
+    If y < 0 Then y = 0
+    If y > Int(picFullSpellList.ScaleHeight / hlst.Pixel_Alto) * hlst.Pixel_Alto - 1 Then y = Int(picFullSpellList.ScaleHeight / hlst.Pixel_Alto) * hlst.Pixel_Alto - 1
+    If x < picFullSpellList.ScaleWidth - 10 Then
+        hlst.ListIndex = Int(y / hlst.Pixel_Alto) + hlst.Scroll
+        hlst.DownBarrita = 0
+        If Button = vbRightButton Then
+            gDragState.DragSlot = hlst.ListIndex + 1
+            gDragState.DragIndex = UserHechizos(gDragState.DragSlot)
+            If HechizoData(gDragState.DragIndex).IsBindable Then
+                gDragState.DragType = e_HotkeyType.Spell
+                gDragState.Grh = HechizoData(gDragState.DragIndex).IconoIndex
+                gDragState.PosX = -500
+                gDragState.PosY = -500
+                gDragState.active = True
+            Else
+                gDragState.DragSlot = 0
+                gDragState.DragIndex = 0
+            End If
+        End If
+        If Seguido = 1 Then
+            Call WriteNotifyInventarioHechizos(2, hlst.ListIndex, hlst.Scroll)
+        End If
+    Else
+        hlst.DownBarrita = y - hlst.Scroll * (picFullSpellList.ScaleHeight - hlst.BarraHeight) / (hlst.ListCount - hlst.VisibleCount)
+    End If
+    Exit Sub
+picFullSpellList_MouseDown_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullSpellList_MouseDown", Erl)
+    Resume Next
+End Sub
+
+Private Sub picFullSpellList_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo picFullSpellList_MouseMove_Err
+    If Button = 1 Then
+        Dim yy As Integer
+        yy = y
+        If yy < 0 Then yy = 0
+        If yy > Int(picFullSpellList.ScaleHeight / hlst.Pixel_Alto) * hlst.Pixel_Alto - 1 Then yy = Int(picFullSpellList.ScaleHeight / hlst.Pixel_Alto) * hlst.Pixel_Alto - 1
+        If hlst.DownBarrita > 0 Then
+            hlst.Scroll = (y - hlst.DownBarrita) * (hlst.ListCount - hlst.VisibleCount) / (picFullSpellList.ScaleHeight - hlst.BarraHeight)
+        Else
+            hlst.ListIndex = Int(yy / hlst.Pixel_Alto) + hlst.Scroll
+            If Seguido = 1 Then
+                Call WriteNotifyInventarioHechizos(2, hlst.ListIndex, hlst.Scroll)
+            End If
+            If ScrollArrastrar = 0 Then
+                If (y < yy) Then hlst.Scroll = hlst.Scroll - 1
+                If (y > yy) Then hlst.Scroll = hlst.Scroll + 1
+            End If
+        End If
+    ElseIf Button = 0 Then
+        hlst.ShowBarrita = x > picFullSpellList.ScaleWidth - hlst.BarraWidth * 2
+    End If
+    If gDragState.active Then
+        gDragState.PosX = x + picFullSpellList.Left + picFullSpellList.Container.Left
+        gDragState.PosY = y + picFullSpellList.Top + picFullSpellList.Container.Top
+    End If
+    Exit Sub
+picFullSpellList_MouseMove_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullSpellList_MouseMove", Erl)
+    Resume Next
+End Sub
+
+Private Sub picFullSpellList_MouseUp(Button As Integer, Shift As Integer, x As Single, y As Single)
+    On Error GoTo picFullSpellList_MouseUp_Err
+    hlst.DownBarrita = 0
+    If Button = vbRightButton And gDragState.active Then
+        Call frmMain.OnDragEnd
+    End If
+    Exit Sub
+picFullSpellList_MouseUp_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullSpellList_MouseUp", Erl)
+    Resume Next
+End Sub
+
+Private Sub picFullSpellList_DblClick()
+    On Error GoTo picFullSpellList_DblClick_Err
+    Call CastSelectedSpell
+    Exit Sub
+picFullSpellList_DblClick_Err:
+    Call RegistrarError(Err.Number, Err.Description, "frmMain.picFullSpellList_DblClick", Erl)
+    Resume Next
+End Sub
+
+Public Sub Public_CastSelectedSpell()
+    Call CastSelectedSpell
+End Sub
+
+Public Sub Public_MoveSpell(ByVal Direction As Integer)
+    Call cmdMoverHechi_Click(Direction)
+End Sub
+
+Public Sub Public_RequestSpellInfo()
+    If hlst.ListIndex <> -1 Then
+        Call WriteSpellInfo(hlst.ListIndex + 1)
+    End If
+End Sub
+
+
 Private Sub picInv_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     On Error GoTo picInv_MouseMove_Err
     With Inventario
@@ -3310,13 +3506,41 @@ Private Sub renderer_MouseUp(Button As Integer, Shift As Integer, x As Single, y
         Case vbMiddleButton: MouseAction = ACCION3
         Case Else: Exit Sub
     End Select
-    
+
+    ' Plan 21.002 V9.12: click sobre el avatar (top-left FULL) abre estadisticas
+    If Button = vbLeftButton And ViewportDebug_IsFullscreen() Then
+        If HudAvatar_HitTest(CLng(x), CLng(y)) Then
+            Call HudAvatar_OpenStats
+            Exit Sub
+        End If
+    End If
+
+    If Button = vbMiddleButton Then
+        Dim HkMidSlot As Integer
+        HkMidSlot = HotkeySlotHitTest(CInt(x), CInt(y))
+        If HkMidSlot >= 0 Then
+            Dim CmdInput As String
+            CmdInput = InputBox("Ingrese un comando (ej: /meditar):", "Asignar comando a slot " & (HkMidSlot + 1))
+            CmdInput = Trim$(CmdInput)
+            If LenB(CmdInput) > 0 Then
+                Call SetHotkeyCommand(HkMidSlot, CmdInput)
+            End If
+            Exit Sub
+        End If
+    End If
+
+    If Not InGameArea Then Exit Sub
     Select Case MouseAction
     
         Case e_MouseAction.eThrowOrLook
             If HandleMouseInput(x, y) Then
             ElseIf HandleHotkeyArrowInput(x, y) Then
-            ElseIf Pregunta Then
+            Else
+                Dim HkClickSlot As Integer
+                HkClickSlot = HotkeySlotHitTest(CInt(x), CInt(y))
+                If HkClickSlot >= 0 Then
+                    Call DoHotKey(CByte(HkClickSlot))
+                ElseIf Pregunta Then
                 If x >= 419 And x <= 433 And y >= 243 And y <= 260 Then ' NO
                     If PreguntaLocal Then
                         Select Case PreguntaNUM
@@ -3366,12 +3590,20 @@ Private Sub renderer_MouseUp(Button As Integer, Shift As Integer, x As Single, y
                     End If
                     Exit Sub
                 End If
+                End If
             End If
             
         Case e_MouseAction.eInteract
             If gDragState.active Then
                 Call OnDragEnd
                 gDragState.active = False
+            Else
+                Dim HkRightSlot As Integer
+                HkRightSlot = HotkeySlotHitTest(CInt(x), CInt(y))
+                If HkRightSlot >= 0 Then
+                    Call ClearHotkeySlot(HkRightSlot)
+                    Exit Sub
+                End If
             End If
             Dim dummyRect As RECT
             dummyRect.Left = renderer.Left
@@ -3387,6 +3619,9 @@ End Sub
 Private Sub renderer_MouseMove(Button As Integer, Shift As Integer, x As Single, y As Single)
     On Error GoTo renderer_MouseMove_Err
     DisableURLDetect
+    If ViewportDebug_IsFullscreen() And Button = vbLeftButton Then
+        If ViewportDebug_HandleMouseDown(CLng(x), CLng(y)) Then Exit Sub
+    End If
     Call Form_MouseMove(Button, Shift, renderer.Left + x, renderer.Top + y)
     Exit Sub
 renderer_MouseMove_Err:
@@ -3396,6 +3631,13 @@ End Sub
 
 Private Sub renderer_MouseDown(Button As Integer, Shift As Integer, x As Single, y As Single)
     On Error GoTo renderer_MouseDown_Err
+    ' V9.5: barra GM al top consume el click si cae adentro
+    If Is_FullscreenGmBarActive() And Button = vbLeftButton Then
+        If Handle_GmBarClick(CLng(x), CLng(y)) Then Exit Sub
+    End If
+    If ViewportDebug_IsFullscreen() And Button = vbLeftButton Then
+        If ViewportDebug_HandleMouseDown(CLng(x), CLng(y)) Then Exit Sub
+    End If
     If SendTxt.visible Then SendTxt.SetFocus
     MouseBoton = Button
     MouseShift = Shift
@@ -3572,6 +3814,7 @@ CmdLanzar_MouseMove_Err:
 End Sub
 
 Public Sub Form_Click()
+    If Not InGameArea Then Exit Sub
     #If DEBUGGING = 1 Then
         'change the style and let he window to be moved
         Form_RemoveTitleBar Me
@@ -3787,8 +4030,8 @@ End Sub
 
 Private Function InGameArea() As Boolean
     On Error GoTo InGameArea_Err
-    If clicX < renderer.Left Or clicX > renderer.Left + (32 * 23) Then Exit Function
-    If clicY < renderer.Top Or clicY > renderer.Top + (32 * 17) Then Exit Function
+    If clicX < g_viewport_logical_left Or clicX > g_viewport_logical_left + g_viewport_logical_width Then Exit Function
+    If clicY < g_viewport_logical_top Or clicY > g_viewport_logical_top + g_viewport_logical_height Then Exit Function
     InGameArea = True
     Exit Function
 InGameArea_Err:
@@ -4008,22 +4251,46 @@ Public Sub UpdateBuff()
 End Sub
 
 Public Sub OnDragEnd()
-    If gDragState.PosX > hotkey_render_posX And gDragState.PosX < hotkey_render_posX + 36 * 10 And gDragState.PosY > renderer.Top + renderer.Height - hotkey_render_posY And _
-            gDragState.PosY < renderer.Top + renderer.Height - (hotkey_render_posY - 36) Then
-        Dim TargetSlot As Integer
-        TargetSlot = (gDragState.PosX - hotkey_render_posX) \ 36
+    Dim TargetSlot As Integer
+    If gDragState.PosX > g_viewport_logical_left + hotkey_render_posX And gDragState.PosX < g_viewport_logical_left + hotkey_render_posX + 36 * 10 And gDragState.PosY > g_viewport_logical_top + g_viewport_logical_height - hotkey_render_posY And _
+            gDragState.PosY < g_viewport_logical_top + g_viewport_logical_height - (hotkey_render_posY - 36) Then
+        TargetSlot = (gDragState.PosX - g_viewport_logical_left - hotkey_render_posX) \ 36
+        Call SetHotkey(gDragState.DragIndex, gDragState.DragSlot, gDragState.DragType, TargetSlot)
+    ElseIf ShowSecondHotkeyBar And gDragState.PosX > g_viewport_logical_left + hotkey_render_posX And gDragState.PosX < g_viewport_logical_left + hotkey_render_posX + 36 * 10 And gDragState.PosY > g_viewport_logical_top + g_viewport_logical_height - hotkey_render2_posY And _
+            gDragState.PosY < g_viewport_logical_top + g_viewport_logical_height - (hotkey_render2_posY - 36) Then
+        TargetSlot = 10 + (gDragState.PosX - g_viewport_logical_left - hotkey_render_posX) \ 36
         Call SetHotkey(gDragState.DragIndex, gDragState.DragSlot, gDragState.DragType, TargetSlot)
     End If
     gDragState.active = False
 End Sub
 
 Public Function HandleHotkeyArrowInput(ByVal x As Integer, ByVal y As Integer) As Boolean
-    If x > hotkey_arrow_posx And x < hotkey_arrow_posx + 26 And y > renderer.Height - hotkey_arrow_posy And y < renderer.Height Then
+    If x > g_viewport_logical_left + hotkey_arrow_posx And x < g_viewport_logical_left + hotkey_arrow_posx + 26 And y > g_viewport_logical_top + g_viewport_logical_height - hotkey_arrow_posy And y < g_viewport_logical_top + g_viewport_logical_height Then
         HandleHotkeyArrowInput = True
         HideHotkeys = Not HideHotkeys
         Call SaveHideHotkeys
+        Exit Function
     End If
     HandleHotkeyArrowInput = False
+End Function
+
+Public Function HotkeySlotHitTest(ByVal x As Integer, ByVal y As Integer) As Integer
+    HotkeySlotHitTest = -1
+    If Not IsSet(FeatureToggles, eEnableHotkeys) Then Exit Function
+    If HideHotkeys Then Exit Function
+    If x > g_viewport_logical_left + hotkey_render_posX And x < g_viewport_logical_left + hotkey_render_posX + 36 * 10 And _
+            y > g_viewport_logical_top + g_viewport_logical_height - hotkey_render_posY And _
+            y < g_viewport_logical_top + g_viewport_logical_height - (hotkey_render_posY - 36) Then
+        HotkeySlotHitTest = (x - g_viewport_logical_left - hotkey_render_posX) \ 36
+        Exit Function
+    End If
+    If ShowSecondHotkeyBar Then
+        If x > g_viewport_logical_left + hotkey_render_posX And x < g_viewport_logical_left + hotkey_render_posX + 36 * 10 And _
+                y > g_viewport_logical_top + g_viewport_logical_height - hotkey_render2_posY And _
+                y < g_viewport_logical_top + g_viewport_logical_height - (hotkey_render2_posY - 36) Then
+            HotkeySlotHitTest = 10 + (x - g_viewport_logical_left - hotkey_render_posX) \ 36
+        End If
+    End If
 End Function
 
 Private Sub ChangeExperienceDisplayMode(ByVal btn As Image)

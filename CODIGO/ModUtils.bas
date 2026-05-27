@@ -90,8 +90,6 @@ Public ClanesList() As Tclan
 Public CheckMD5     As String
 Public intro        As Byte
 Public InviCounter  As Integer
-Public DrogaCounter As Integer
-Public DrogaCounterMax As Integer
 Type Effect_Type
     FX_Grh     As Grh      '< FxGrh.
     Fx_Index   As Integer  '< Indice del fx.

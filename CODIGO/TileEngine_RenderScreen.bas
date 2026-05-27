@@ -24,10 +24,11 @@ Public map_letter_grh_next    As Long
 Public map_letter_a           As Single
 Public map_letter_fadestatus  As Byte
 Public gameplay_render_offset As Vector2
-Public Const hotkey_render_posX = 189
+Public Const hotkey_render_posX = 390
 Public Const hotkey_render_posY = 43
-Public Const hotkey_arrow_posx = 200 + 36 * 5 - 26
+Public Const hotkey_arrow_posx = 401 + 36 * 5 - 26
 Public Const hotkey_arrow_posy = 10
+Public Const hotkey_render2_posY = 79
 Public Const GRH_HOTKEY_ARROW_HIDE = 19204
 Public Const GRH_HOTKEY_ARROW_SHOW = 19205
 Sub RenderScreen(ByVal center_x As Integer, _
@@ -52,11 +53,21 @@ Sub RenderScreen(ByVal center_x As Integer, _
     Dim StartY             As Integer
     Dim StartBufferedX     As Integer
     Dim StartBufferedY     As Integer
+    Dim RawLayerMinX       As Integer
+    Dim RawLayerMaxX       As Integer
+    Dim RawLayerMinY       As Integer
+    Dim RawLayerMaxY       As Integer
+    Dim RawBufferedMinX    As Integer
+    Dim RawBufferedMaxX    As Integer
+    Dim RawBufferedMinY    As Integer
+    Dim RawBufferedMaxY    As Integer
     Dim screenX            As Integer      ' Keeps track of where to place tile on screen
     Dim screenY            As Integer      ' Keeps track of where to place tile on screen
     Dim DeltaTime          As Long
     Dim TempColor(3)       As RGBA
     Dim ColorBarraPesca(3) As RGBA
+    ' No clamppear el centro de camara: en bordes de cambio de mapa el server
+    ' confirma transiciones antes del 1/100 y el clamp visual genera rebote.
     ' Tiles that are in range
     MinX = center_x - HalfTileWidth
     MaxX = center_x + HalfTileWidth
@@ -84,6 +95,14 @@ Sub RenderScreen(ByVal center_x As Integer, _
     Else
         MaxY = MaxY + 5
     End If
+    RawLayerMinX = MinX
+    RawLayerMaxX = MaxX
+    RawLayerMinY = MinY
+    RawLayerMaxY = MaxY
+    RawBufferedMinX = MinBufferedX
+    RawBufferedMaxX = MaxBufferedX
+    RawBufferedMinY = MinBufferedY
+    RawBufferedMaxY = MaxBufferedY
     If MapData(UserPos.x, UserPos.y).charindex = 0 And UserCharIndex > 0 Then
         UserPos.x = charlist(UserCharIndex).Pos.x
         UserPos.y = charlist(UserCharIndex).Pos.y
@@ -120,6 +139,19 @@ Sub RenderScreen(ByVal center_x As Integer, _
     ElseIf MaxBufferedY > YMaxMapSize Then
         MaxBufferedY = YMaxMapSize
     End If
+
+    ' Mantener capas buffer/personajes en la misma base virtual que layer 1.
+    ' En FULL, al pasar de y=13 a y=12 se pide y=0; las formulas de borde
+    ' historicas desplazaban StartBuffered 32px y generaban rebote visual.
+    StartBufferedX = StartX + MinBufferedX * TilePixelWidth
+    StartBufferedY = StartY + MinBufferedY * TilePixelHeight
+
+    If g_game_state.State = e_state_gameplay_screen Then
+        StartX = StartX + g_viewport_logical_left
+        StartY = StartY + g_viewport_logical_top
+        StartBufferedX = StartBufferedX + g_viewport_logical_left
+        StartBufferedY = StartBufferedY + g_viewport_logical_top
+    End If
     If UpdateLights Then
         Call RestaurarLuz
         Call MapUpdateGlobalLightRender
@@ -137,6 +169,7 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Next x
     Next y
     Call SpriteBatch.EndPrecalculated
+    Call ViewportNeighbor_RenderLayer(1, RawLayerMinX, RawLayerMaxX, RawLayerMinY, RawLayerMaxY, StartX, StartY)
     ' Layer 2 & small objects loop
     Call DirectDevice.SetRenderState(D3DRS_ALPHATESTENABLE, True) ' Para no pisar los reflejos
     screenY = StartBufferedY
@@ -153,6 +186,7 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Next x
         screenY = screenY + TilePixelHeight
     Next y
+    Call ViewportNeighbor_RenderLayer(2, RawBufferedMinX, RawBufferedMaxX, RawBufferedMinY, RawBufferedMaxY, StartBufferedX - MinBufferedX * TilePixelWidth, StartBufferedY - MinBufferedY * TilePixelHeight)
     Dim grhSpellArea As Grh
     grhSpellArea.GrhIndex = 20058
     Dim temp_color(3) As RGBA
@@ -334,6 +368,7 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Next x
         screenY = screenY + TilePixelHeight
     Next y
+    Call ViewportNeighbor_RenderLayer(3, RawBufferedMinX, RawBufferedMaxX, RawBufferedMinY, RawBufferedMaxY, StartBufferedX - MinBufferedX * TilePixelWidth, StartBufferedY - MinBufferedY * TilePixelHeight)
     If InfoItemsEnRender And tX And tY Then
         With MapData(tX, tY)
             If .OBJInfo.ObjIndex Then
@@ -421,6 +456,7 @@ Sub RenderScreen(ByVal center_x As Integer, _
             screenY = screenY + TilePixelHeight
         Next y
     End If
+    Call ViewportNeighbor_RenderLayer(4, RawBufferedMinX, RawBufferedMaxX, RawBufferedMinY, RawBufferedMaxY, StartBufferedX - MinBufferedX * TilePixelWidth, StartBufferedY - MinBufferedY * TilePixelHeight)
     If TieneAntorcha Then
         Dim randX As Double, randY As Double
         If GetTickCount - (10 * Rnd + 50) >= DeltaAntorcha Then
@@ -530,16 +566,21 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Call RGBAList(color, 255, 255, 255, 200)
         Dim ArrowPos As Vector2
         ArrowPos.x = hotkey_arrow_posx
-        ArrowPos.y = frmMain.renderer.Height - hotkey_arrow_posy
+        ArrowPos.y = g_viewport_logical_top + g_viewport_logical_height - hotkey_arrow_posy
         If HideHotkeys Then
-            Call Draw_GrhIndex(GRH_HOTKEY_ARROW_SHOW, ArrowPos.x, ArrowPos.y)
+            Call Draw_GrhIndex(GRH_HOTKEY_ARROW_SHOW, g_viewport_logical_left + ArrowPos.x, ArrowPos.y)
         Else
             For i = 0 To 9
-                Call DrawHotkey(i, i * 36 + hotkey_render_posX, frmMain.renderer.Height - hotkey_render_posY)
+                Call DrawHotkey(i, g_viewport_logical_left + i * 36 + hotkey_render_posX, g_viewport_logical_top + g_viewport_logical_height - hotkey_render_posY)
             Next
-            Call Draw_GrhIndex(GRH_HOTKEY_ARROW_HIDE, ArrowPos.x, ArrowPos.y)
+            If ShowSecondHotkeyBar Then
+                For i = 10 To 19
+                    Call DrawHotkey(i, g_viewport_logical_left + (i - 10) * 36 + hotkey_render_posX, g_viewport_logical_top + g_viewport_logical_height - hotkey_render2_posY)
+                Next
+            End If
+            Call Draw_GrhIndex(GRH_HOTKEY_ARROW_HIDE, g_viewport_logical_left + ArrowPos.x, ArrowPos.y)
             If gDragState.active Then
-                Call Draw_GrhColor(gDragState.Grh, gDragState.PosX - 16 - frmMain.renderer.Left, gDragState.PosY - frmMain.renderer.Top - 16, color)
+                Call Draw_GrhColor(gDragState.Grh, gDragState.PosX - 16, gDragState.PosY - 16, color)
             End If
         End If
     End If
@@ -555,7 +596,7 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Dim dbgColor(3) As RGBA
         Call RGBAList(dbgColor, 255, 255, 255, 255)
         dbgX = 10 + gameplay_render_offset.x
-        dbgY = 140 + gameplay_render_offset.y
+        dbgY = 190 + gameplay_render_offset.y
         dbgW = 0
         For dbgI = 0 To UBound(dbgLines)
             dbgLineW = Engine_Text_Width(dbgLines(dbgI), False, 1)
@@ -568,7 +609,9 @@ Sub RenderScreen(ByVal center_x As Integer, _
         Next dbgI
     End If
 #End If
-    Call renderCooldowns(710 + gameplay_render_offset.x, 25 + gameplay_render_offset.y)
+    If Not Is_FullscreenBuffsPanelActive() Then
+        Call renderCooldowns(g_viewport_logical_left + g_viewport_logical_width - 26, g_viewport_logical_top + 25)
+    End If
     If InvasionActual Then
         Call Engine_Draw_Box(190 + gameplay_render_offset.x, 550 + gameplay_render_offset.y, 356, 36, RGBA_From_Comp(0, 0, 0, 200))
         Call Engine_Draw_Box(193 + gameplay_render_offset.x, 553 + gameplay_render_offset.y, 3.5 * InvasionPorcentajeVida, 30, RGBA_From_Comp(20, 196, 255, 200))
@@ -747,16 +790,24 @@ End Sub
 
 Private Sub DrawHotkey(ByVal HkIndex As Integer, ByVal PosX As Integer, ByVal PosY As Integer)
     Call Draw_GrhIndex(GRH_INVENTORYSLOT, PosX, PosY)
-    If HotkeyList(HkIndex).Index > 0 Then
+    If HotkeyList(HkIndex).Type = e_HotkeyType.Command Then
+        If LenB(HotkeyList(HkIndex).CommandText) > 0 Then
+            Call Engine_Text_Render(Left$(HotkeyList(HkIndex).CommandText, 5), PosX + 2, PosY + 8, COLOR_WHITE, 1, True)
+        End If
+    ElseIf HotkeyList(HkIndex).Index > 0 Then
         If HotkeyList(HkIndex).Type = e_HotkeyType.Item Then
             Call Draw_GrhIndex(ObjData(HotkeyList(HkIndex).Index).GrhIndex, PosX, PosY)
         ElseIf HotkeyList(HkIndex).Type = e_HotkeyType.Spell Then
             Call Draw_GrhIndex(HechizoData(HotkeyList(HkIndex).Index).IconoIndex, PosX, PosY)
         End If
     End If
-    If HkIndex = 9 Then
-        Call Engine_Text_Render("0", PosX + 12, PosY + 26, COLOR_WHITE, 1, True)
+    Dim HkKeyAction As Integer
+    If HkIndex < 10 Then
+        HkKeyAction = e_KeyAction.eHKey1 + HkIndex
     Else
-        Call Engine_Text_Render(HkIndex + 1, PosX + 12, PosY + 26, COLOR_WHITE, 1, True)
+        HkKeyAction = e_KeyAction.eHKey11 + (HkIndex - 10)
+    End If
+    If LenB(BindKeys(HkKeyAction).Name) > 0 Then
+        Call Engine_Text_Render(BindKeys(HkKeyAction).Name, PosX + 2, PosY + 26, COLOR_WHITE, 1, True)
     End If
 End Sub

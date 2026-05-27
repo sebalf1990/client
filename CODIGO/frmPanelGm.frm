@@ -2544,6 +2544,7 @@ Private Sub flash_Click()
 End Sub
 
 Private Sub Form_Load()
+    Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
     On Error GoTo Form_Load_Err
     List1.Clear
     List2.Clear

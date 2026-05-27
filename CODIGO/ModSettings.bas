@@ -70,9 +70,13 @@ Public Sub LoadHotkeys()
         HotkeyList(i).Index = val(GetVar(FilePath, userName, "BindIndex" & i))
         HotkeyList(i).LastKnownSlot = val(GetVar(FilePath, userName, "LastSlot" & i))
         HotkeyList(i).Type = val(GetVar(FilePath, userName, "Type" & i))
+        If HotkeyList(i).Type = e_HotkeyType.Command Then
+            HotkeyList(i).CommandText = GetVar(FilePath, userName, "CmdText" & i)
+        End If
         Call WriteSetHotkeySlot(i, HotkeyList(i).Index, HotkeyList(i).LastKnownSlot, HotkeyList(i).Type)
     Next i
     HideHotkeys = val(GetVar(FilePath, userName, "HideHotkeys"))
+    ShowSecondHotkeyBar = val(GetVar(FilePath, userName, "ShowSecondBar"))
 End Sub
 
 Public Sub SaveHotkey(ByVal Index As Integer, ByVal LastKnownSlot As Integer, ByVal HotkeyType As e_HotkeyType, ByVal HotkeySlot As Integer)
@@ -81,10 +85,21 @@ Public Sub SaveHotkey(ByVal Index As Integer, ByVal LastKnownSlot As Integer, By
     Call General_Var_Write(FilePath, userName, "BindIndex" & HotkeySlot, Index)
     Call General_Var_Write(FilePath, userName, "LastSlot" & HotkeySlot, LastKnownSlot)
     Call General_Var_Write(FilePath, userName, "Type" & HotkeySlot, HotkeyType)
+    If HotkeyType = e_HotkeyType.Command Then
+        Call General_Var_Write(FilePath, userName, "CmdText" & HotkeySlot, HotkeyList(HotkeySlot).CommandText)
+    Else
+        Call General_Var_Write(FilePath, userName, "CmdText" & HotkeySlot, "")
+    End If
 End Sub
 
 Public Sub SaveHideHotkeys()
     Dim FilePath As String
     FilePath = App.path & HotKeySettingsFile
     Call General_Var_Write(FilePath, userName, "HideHotkeys", IIf(HideHotkeys, 1, 0))
+End Sub
+
+Public Sub SaveShowSecondBar()
+    Dim FilePath As String
+    FilePath = App.path & HotKeySettingsFile
+    Call General_Var_Write(FilePath, userName, "ShowSecondBar", IIf(ShowSecondHotkeyBar, 1, 0))
 End Sub
