@@ -1264,18 +1264,34 @@ Private Sub cmdCancelarTorneo_Click()
 End Sub
 
 Private Sub cmdConfigurarE_Click()
-    FrmTorneo.FraTorneosY.visible = False
+    'Solo oculta el panel de seleccion si el evento elegido tiene frame de config.
+    'Antes ocultaba FraTorneosY incondicionalmente -> sin seleccion (o Bufones/Busqueda
+    'de tesoro, que no tenian Case) la ventana quedaba en blanco.
     Select Case True
         Case OptMatarCon.value
+            FrmTorneo.FraTorneosY.visible = False
             FrmTorneo.Frame2.visible = True
         Case OptElDe.value
+            FrmTorneo.FraTorneosY.visible = False
             FrmTorneo.FraDeathMach.visible = True
         Case OptCapturaDe.value
+            FrmTorneo.FraTorneosY.visible = False
             FrmTorneo.FraCapturaDe.visible = True
         Case OptTorneo.value
+            FrmTorneo.FraTorneosY.visible = False
             FrmTorneo.Frame1.visible = True
         Case OptAbordaje.value
+            FrmTorneo.FraTorneosY.visible = False
             FrmTorneo.FraAbordaje.visible = True
+        Case OptBusquedaDe.value
+            'Busqueda de tesoro: lanza el evento (tipo 0 = continente). No tiene frame.
+            Call WriteBusquedaTesoro(0)
+        Case OptBufones.value
+            'Bufones: sin sistema implementado en el server.
+            MsgBox JsonLanguage.Item("MENSAJEBOX_PROXIMAMENTE"), vbInformation, JsonLanguage.Item("TITULO_ERROR")
+        Case Else
+            'Nada seleccionado: no ocultar la seleccion, avisar.
+            MsgBox JsonLanguage.Item("MENSAJE_SELECCIONAR_EVENTO"), vbInformation, JsonLanguage.Item("TITULO_ERROR")
     End Select
 End Sub
 
