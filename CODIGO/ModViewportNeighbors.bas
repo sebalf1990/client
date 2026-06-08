@@ -501,7 +501,14 @@ End Sub
 
 Private Function ViewportNeighbor_MapPath(ByVal ResourceMap As Integer) As String
 #If Compresion = 1 Then
-    ViewportNeighbor_MapPath = Windows_Temp_Dir & "mapa" & ResourceMap & ".csm"
+    ' Bajo Compresion, los .csm viven en el archivo de OUTPUT. El loader principal
+    ' (Recursos.bas) extrae el mapa actual al temp; los vecinos hay que extraerlos aca.
+    Dim fileName As String
+    fileName = "mapa" & ResourceMap & ".csm"
+    If LenB(Dir$(Windows_Temp_Dir & fileName)) = 0 Then
+        Call Extract_File(Maps, App.path & "\..\Recursos\OUTPUT\", fileName, Windows_Temp_Dir, ResourcesPassword, False)
+    End If
+    ViewportNeighbor_MapPath = Windows_Temp_Dir & fileName
 #Else
     ViewportNeighbor_MapPath = App.path & "\..\Recursos\Mapas\mapa" & ResourceMap & ".csm"
 #End If
