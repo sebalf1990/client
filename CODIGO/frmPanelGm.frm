@@ -22,6 +22,28 @@ Begin VB.Form frmPanelgm
    ScaleHeight     =   8745
    ScaleWidth      =   7155
    ShowInTaskbar   =   0   'False
+   Begin VB.CheckBox chkLeerInvisibleSi 
+      BackColor       =   &H00000000&
+      Caption         =   "Leer Invisible SI"
+      ForeColor       =   &H00FFFFFF&
+      Height          =   255
+      Left            =   4800
+      TabIndex        =   97
+      Top             =   7080
+      Value           =   1  'Checked
+      Width           =   255
+   End
+   Begin VB.CheckBox chkLeerInvisibleNo 
+      BackColor       =   &H00000000&
+      Caption         =   "Leer Invisible NO"
+      ForeColor       =   &H00FFFFFF&
+      Height          =   255
+      Left            =   4800
+      TabIndex        =   98
+      Top             =   7440
+      Value           =   1  'Checked
+      Width           =   255
+   End
    Begin VB.Frame MacrosCheat 
       BackColor       =   &H80000007&
       Height          =   4095
