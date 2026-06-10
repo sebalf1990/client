@@ -1799,6 +1799,7 @@ Private Const MAX_GM_MSG = 300
 Dim reason                      As Long
 Private MisMSG(0 To MAX_GM_MSG) As String
 Private Apunt(0 To MAX_GM_MSG)  As Integer
+Private UltimoTimestampMacroSancionado As String
 
 Public Sub CrearGMmSg(nick As String, msg As String)
     On Error GoTo CrearGMmSg_Err
@@ -3140,6 +3141,53 @@ Private Sub mnuConsulta_Click()
     End If
 End Sub
 
+
+Private Function ObtenerTimestampMacro(ByVal Cadena As String) As String
+    Dim partesTimestamp() As String
+
+    partesTimestamp = Split(Cadena, " Control")
+    ObtenerTimestampMacro = Trim$(partesTimestamp(0))
+End Function
+
+Private Function DebeAplicarSancionMacroPorTimestamp(ByVal Cadena As String) As Boolean
+    Dim timestampActual As String
+
+    timestampActual = ObtenerTimestampMacro(Cadena)
+
+    If LenB(timestampActual) = 0 Then
+        DebeAplicarSancionMacroPorTimestamp = True
+        Exit Function
+    End If
+
+    DebeAplicarSancionMacroPorTimestamp = (StrComp(UltimoTimestampMacroSancionado, timestampActual, vbTextCompare) <> 0)
+End Function
+
+Private Sub RegistrarTimestampSancionadoMacro(ByVal Cadena As String)
+    Dim timestampActual As String
+
+    timestampActual = ObtenerTimestampMacro(Cadena)
+    If LenB(timestampActual) = 0 Then Exit Sub
+
+    UltimoTimestampMacroSancionado = timestampActual
+End Sub
+
+Public Function DebeMostrarMensaje(ByVal Cadena As String) As Boolean
+    Dim cadenaMayus As String
+
+    DebeMostrarMensaje = True
+
+    cadenaMayus = UCase$(Cadena)
+
+    If (InStr(cadenaMayus, "INVISIBLE SI") > 0 Or InStr(cadenaMayus, "INVISIBLE: SI") > 0 Or InStr(cadenaMayus, "INVISIBILIDAD SI") > 0 Or InStr(cadenaMayus, "INVISIBILIDAD: SI") > 0) Then
+        If chkLeerInvisibleSi.value = 0 Then DebeMostrarMensaje = False
+        Exit Function
+    End If
+
+    If (InStr(cadenaMayus, "INVISIBLE NO") > 0 Or InStr(cadenaMayus, "INVISIBLE: NO") > 0 Or InStr(cadenaMayus, "INVISIBILIDAD NO") > 0 Or InStr(cadenaMayus, "INVISIBILIDAD: NO") > 0) Then
+        If chkLeerInvisibleNo.value = 0 Then DebeMostrarMensaje = False
+    End If
+End Function
+
 Public Sub CadenaChat(ByVal chat As String)
     Dim Cadena        As String
     Dim partes()      As String
@@ -3277,6 +3325,8 @@ Public Sub CadenaChat(ByVal chat As String)
     End If
 
     ' Captura avisos de hechizos para autocompletar el usuario atacante y/o objetivo
+    If Not DebeMostrarMensaje(Cadena) Then Exit Sub
+
     If InStr(Cadena, "El usuario ") > 0 And InStr(Cadena, " esta lanzando hechizos al Usuario ") > 0 Then
         partes = Split(Cadena, "El usuario ")
         If UBound(partes) >= 1 Then

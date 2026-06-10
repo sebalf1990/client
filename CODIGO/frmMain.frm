@@ -3638,6 +3638,10 @@ Private Sub renderer_MouseDown(Button As Integer, Shift As Integer, x As Single,
     If ViewportDebug_IsFullscreen() And Button = vbLeftButton Then
         If ViewportDebug_HandleMouseDown(CLng(x), CLng(y)) Then Exit Sub
     End If
+    ' Sincroniza el tile objetivo con la posicion exacta del cursor al comenzar el click dentro del render.
+    mouseX = x
+    mouseY = y
+    Call ConvertCPtoTP(mouseX, mouseY, tX, tY)
     If SendTxt.visible Then SendTxt.SetFocus
     MouseBoton = Button
     MouseShift = Shift
