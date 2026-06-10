@@ -96,6 +96,9 @@ Public Sub SetActiveServer(ByVal IP As String, ByVal port As String)
                     PuertoDelServidorLogin = 6500
                     PuertoDelServidor = 6501
                 #End If
+        #Else
+            'Self-hosted release: read the game server list from Remotes.ini [Production]
+            Call SetActiveEnvironment("Production")
         #End If
     #End If
     

@@ -1467,7 +1467,9 @@ Public Sub ParseUserCommand(ByVal RawCommand As String)
             Case "/REQDEBUG"
                 Call HandleReqDebugCmd(ArgumentosAll, CantidadArgumentos)
             Case "/DATOS"
+                #If DEBUGGING = 1 Then
                 Call HandleDatosCmd
+                #End If
             Case "/FEATURETOGGLE"
                 Call HandleFeatureToggle(ArgumentosAll, CantidadArgumentos)
             Case "/APRENDE", "/OLVIDA"
