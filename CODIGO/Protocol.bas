@@ -2241,6 +2241,8 @@ Private Sub HandleCharacterCreate()
     Body = Reader.ReadInt16()
     Head = Reader.ReadInt16()
     Heading = Reader.ReadInt8()
+    ' FIX C 13.001: NPCs spawneados (ej. via GM /CC) llegan con Heading=0; Walk() es 1..4 -> Walk(0) = Error 9 -> char invisible. Clamp a SOUTH.
+    If Heading < E_Heading.NORTH Or Heading > E_Heading.WEST Then Heading = E_Heading.south
     x = Reader.ReadInt8()
     y = Reader.ReadInt8()
     weapon = Reader.ReadInt16()
