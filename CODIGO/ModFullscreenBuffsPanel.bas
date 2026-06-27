@@ -73,21 +73,21 @@ Public Sub Render_FullscreenBuffsPanel()
     currentX = startX
     rendered = 0
 
-    Call RenderEffectList(BuffList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells)
-    Call RenderEffectList(DeBuffList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells)
-    Call RenderEffectList(CDList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells)
+    Call RenderEffectList(BuffList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells, False)
+    Call RenderEffectList(DeBuffList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells, False)
+    Call RenderEffectList(CDList, currentX, PANEL_Y, CurrTime, colors, rendered, maxCells, True)
     Exit Sub
 Render_FullscreenBuffsPanel_Err:
     Call RegistrarError(Err.Number, Err.Description, "ModFullscreenBuffsPanel.Render_FullscreenBuffsPanel", Erl)
     Resume Next
 End Sub
 
-Private Sub RenderEffectList(ByRef EffectList As t_ActiveEffectList, ByRef currentX As Long, ByVal y As Long, ByVal CurrTime As Long, ByRef colors() As RGBA, ByRef rendered As Long, ByVal maxCells As Long)
+Private Sub RenderEffectList(ByRef EffectList As t_ActiveEffectList, ByRef currentX As Long, ByVal y As Long, ByVal CurrTime As Long, ByRef colors() As RGBA, ByRef rendered As Long, ByVal maxCells As Long, ByVal isCooldown As Boolean)
     On Error GoTo RenderEffectList_Err
     Dim i As Integer
     For i = 0 To EffectList.EffectCount - 1
         If rendered >= maxCells Then Exit Sub
-        Call DrawFullscreenEffect(currentX, y, EffectList.EffectList(i), CurrTime, colors)
+        Call DrawFullscreenEffect(currentX, y, EffectList.EffectList(i), CurrTime, colors, isCooldown)
         currentX = currentX + CELL_STEP
         rendered = rendered + 1
     Next i
@@ -97,7 +97,7 @@ RenderEffectList_Err:
     Resume Next
 End Sub
 
-Private Sub DrawFullscreenEffect(ByVal x As Long, ByVal y As Long, ByRef Effect As t_ActiveEffect, ByVal CurrTime As Long, ByRef colors() As RGBA)
+Private Sub DrawFullscreenEffect(ByVal x As Long, ByVal y As Long, ByRef Effect As t_ActiveEffect, ByVal CurrTime As Long, ByRef colors() As RGBA, ByVal isCooldown As Boolean)
     On Error GoTo DrawFullscreenEffect_Err
     If Effect.Grh <= 0 Then Exit Sub
 
@@ -145,7 +145,7 @@ Private Sub DrawFullscreenEffect(ByVal x As Long, ByVal y As Long, ByRef Effect 
     End If
 
     Dim labelTxt As String
-    labelTxt = EffectLabel(Effect, CurrTime)
+    labelTxt = EffectLabel(Effect, CurrTime, isCooldown)
     If LenB(labelTxt) > 0 Then
         Call Engine_Text_Render(labelTxt, x + 2, y + TEXT_OFFSET_Y, COLOR_WHITE, 1, False)
     End If
@@ -155,19 +155,15 @@ DrawFullscreenEffect_Err:
     Resume Next
 End Sub
 
-Private Function EffectLabel(ByRef Effect As t_ActiveEffect, ByVal CurrTime As Long) As String
+Private Function EffectLabel(ByRef Effect As t_ActiveEffect, ByVal CurrTime As Long, ByVal isCooldown As Boolean) As String
     On Error GoTo EffectLabel_Err
+    ' Plan 20.002: regla global del motor para EOT (buffs/debuffs): stacks solo si hay 2 o mas,
+    ' nunca segundos (el barrido radial es el timer). Cooldowns conservan segundos (plan 25.003).
     If Effect.StackCount > 1 Then
         EffectLabel = CStr(Effect.StackCount)
         Exit Function
     End If
-
-    If Effect.StackCount > 0 And ((Effect.TypeId >= 43 And Effect.TypeId <= 48) Or (Effect.TypeId >= 50 And Effect.TypeId <= 52)) Then
-        EffectLabel = CStr(Effect.StackCount)
-        Exit Function
-    End If
-
-    If Effect.duration > 0 Then
+    If isCooldown And Effect.duration > 0 Then
         Dim remaining As Long
         remaining = (Effect.duration - (CurrTime - Effect.startTime) + 999) \ 1000
         If remaining < 0 Then remaining = 0
