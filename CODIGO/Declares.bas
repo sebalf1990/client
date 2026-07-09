@@ -1170,6 +1170,10 @@ Public Declare Function ShellExecute _
                                       ByVal lpDirectory As String, _
                                       ByVal nShowCmd As Long) As Long
 
+' Gestion de cuentas via web (plan 08.001): unico punto de cambio si cambia el dominio
+Public Const WEB_URL_ACCOUNT_REGISTER As String = "https://ao.muraliarevestimientos.com/registro"
+Public Const WEB_URL_PASSWORD_RECOVER As String = "https://ao.muraliarevestimientos.com/recuperar"
+
 'Lista de cabezas
 Public Type tIndiceCabeza
     Head(1 To 4) As Long

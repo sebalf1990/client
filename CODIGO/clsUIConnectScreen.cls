@@ -81,6 +81,7 @@ Private Const EVENT_ID_CONNECT_BUTTON_CLICKED                   As Integer = 3
 Private Const EVENT_ID_BUTTON_MSG_BOX_OK_CLICKED                As Integer = 4
 Private Const EVENT_ID_CREATE_ACCOUNT_NEXT_CLICKED              As Integer = 5
 Private Const EVENT_ID_CREATE_ACCOUNT_BACK_CLICKED              As Integer = 6
+Private Const EVENT_ID_FORGOT_PASSWORD_CLICKED                  As Integer = 7
 
 
 
@@ -89,8 +90,7 @@ Private Sub ProcessAction(ByVal actionID As Integer)
         Case EVENT_ID_CREATE_ACCOUNT_BUTTON_CLOSE_CLICKED
             m_frameCreateUser.IUIComponent_SetVisible False
         Case EVENT_ID_BUTTON_CREATE_ACCOUNT_CLICKED
-             m_frameCreateUser.IUIComponent_SetVisible True
-             m_frameCreateUser.ChangeState 1
+            Call ShellExecute(0, "open", WEB_URL_ACCOUNT_REGISTER, "", "", 1)
         Case EVENT_ID_CONNECT_BUTTON_CLICKED
             'Call SetActiveServer("127.0.0.1", "6501")
             Call DoLogin(m_inputboxUser.text, m_inputboxPass.text, True)
@@ -100,6 +100,8 @@ Private Sub ProcessAction(ByVal actionID As Integer)
             m_frameCreateUser.ChangeState 2
         Case EVENT_ID_CREATE_ACCOUNT_BACK_CLICKED
             m_frameCreateUser.ChangeState 1
+        Case EVENT_ID_FORGOT_PASSWORD_CLICKED
+            Call ShellExecute(0, "open", WEB_URL_PASSWORD_RECOVER, "", "", 1)
         Case Else
             Debug.Assert False ' must not happen!
     End Select
@@ -146,7 +148,7 @@ Public Sub Init(ByVal dev As Direct3DDevice8)
     m_lblNewAccount.Init "Crear cuenta", 0.1, 0.9, UI_COLOR_WHITE, 100, 1, 1, EVENT_ID_BUTTON_CREATE_ACCOUNT_CLICKED
     m_frameConnect.AddUIElement m_lblNewAccount
     Set m_lblForgotPass = New clsUILabel
-    m_lblForgotPass.Init "Olvide mi contraseña", 0.5, 0.9, UI_COLOR_WHITE, 100, 1, 1, EVENT_ID_BUTTON_CREATE_ACCOUNT_CLICKED
+    m_lblForgotPass.Init "Olvide mi contraseña", 0.5, 0.9, UI_COLOR_WHITE, 100, 1, 1, EVENT_ID_FORGOT_PASSWORD_CLICKED
     m_frameConnect.AddUIElement m_lblForgotPass
     m_UIMgr.AddComponent m_frameConnect
     

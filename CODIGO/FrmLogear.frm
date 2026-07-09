@@ -150,6 +150,26 @@ Begin VB.Form FrmLogear
       Top             =   3030
       Width           =   1980
    End
+   Begin VB.Label lblRecuperarPassword 
+      AutoSize        =   -1  'True
+      BackStyle       =   0  'Transparent
+      Caption         =   "¿Olvidaste tu contraseña?"
+      BeginProperty Font 
+         Name            =   "MS Sans Serif"
+         Size            =   8.25
+         Charset         =   0
+         Weight          =   700
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H000080FF&
+      Height          =   195
+      Left            =   1470
+      TabIndex        =   7
+      Top             =   3500
+      Width           =   2400
+   End
 End
 Attribute VB_Name = "FrmLogear"
 Attribute VB_GlobalNameSpace = False
@@ -265,10 +285,19 @@ End Function
 
 Private Sub cmdCuenta_Click()
     On Error GoTo btnCuenta_Click_Err
-    frmNewAccount.Show , frmConnect
+    Call ShellExecute(Me.hWnd, "open", WEB_URL_ACCOUNT_REGISTER, "", "", 1)
     Exit Sub
 btnCuenta_Click_Err:
     Call RegistrarError(Err.Number, Err.Description, "FrmLogear.btnCuenta_Click", Erl)
+    Resume Next
+End Sub
+
+Private Sub lblRecuperarPassword_Click()
+    On Error GoTo lblRecuperarPassword_Click_Err
+    Call ShellExecute(Me.hWnd, "open", WEB_URL_PASSWORD_RECOVER, "", "", 1)
+    Exit Sub
+lblRecuperarPassword_Click_Err:
+    Call RegistrarError(Err.Number, Err.Description, "FrmLogear.lblRecuperarPassword_Click", Erl)
     Resume Next
 End Sub
 
