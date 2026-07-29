@@ -60,7 +60,7 @@ Begin VB.Form FrmLogear
       Height          =   285
       IMEMode         =   3  'DISABLE
       Left            =   2820
-      MaxLength       =   30
+      MaxLength       =   72
       PasswordChar    =   "*"
       TabIndex        =   2
       Tag             =   "1"
@@ -84,7 +84,7 @@ Begin VB.Form FrmLogear
       ForeColor       =   &H00C0C0C0&
       Height          =   285
       Left            =   710
-      MaxLength       =   100
+      MaxLength       =   320
       ScrollBars      =   1  'Horizontal
       TabIndex        =   0
       Tag             =   "0"
