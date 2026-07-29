@@ -1170,9 +1170,19 @@ Public Declare Function ShellExecute _
                                       ByVal lpDirectory As String, _
                                       ByVal nShowCmd As Long) As Long
 
-' Gestion de cuentas via web (plan 08.001): unico punto de cambio si cambia el dominio
-Public Const WEB_URL_ACCOUNT_REGISTER As String = "https://ao.muraliarevestimientos.com/registro"
-Public Const WEB_URL_PASSWORD_RECOVER As String = "https://ao.muraliarevestimientos.com/recuperar"
+'
+' Gestion de cuentas via web (plan 08.001): unico punto de cambio si cambia el
+' dominio. Las lee FrmLogear (cmdCuenta_Click, lblRecuperarPassword_Click) y
+' clsUIConnectScreen, o sea las dos pantallas de conexion que conviven en el
+' binario, asi que cambiarlas aca alcanza para las cuatro afordancias.
+'
+' Apuntaban a ao.muraliarevestimientos.com (plan 29.001): el jugador bajaba el
+' juego de nuevaeticaao.com, tocaba "Crear cuenta" y el navegador le mostraba
+' el dominio de una empresa de revestimientos. Eso es exactamente la senal que
+' la propia web le ensena a desconfiar, y entrenar a ignorarla es peor que el
+' inconveniente de tener dos dominios.
+Public Const WEB_URL_ACCOUNT_REGISTER As String = "https://nuevaeticaao.com/registro"
+Public Const WEB_URL_PASSWORD_RECOVER As String = "https://nuevaeticaao.com/recuperar"
 
 'Lista de cabezas
 Public Type tIndiceCabeza
