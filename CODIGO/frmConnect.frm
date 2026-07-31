@@ -566,7 +566,7 @@ End Sub
                     Case e_action_close_game
                         CloseClient
                     Case e_action_create_character
-                        If CantidadDePersonajesEnCuenta >= 10 Then
+                        If CantidadDePersonajesEnCuenta >= MaxPersonajesDeLaCuenta Then
                             Call MensajeAdvertencia(JsonLanguage.Item("ADVERTENCIA_LIMITE_PERSONAJES"))
                             Exit Sub
                         End If
@@ -905,7 +905,7 @@ Private Sub render_MouseUp(Button As Integer, Shift As Integer, x As Single, y A
 
                 Case e_action_create_character
 
-                    If CantidadDePersonajesEnCuenta >= 10 Then
+                    If CantidadDePersonajesEnCuenta >= MaxPersonajesDeLaCuenta Then
                         Call MensajeAdvertencia(JsonLanguage.Item("ADVERTENCIA_LIMITE_PERSONAJES"))
                         
                         Exit Sub

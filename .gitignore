@@ -30,3 +30,14 @@ AOACClient.pdb
 *.pdb
 test_results.txt
 vb6build.log
+
+# Sobrante local: el cliente lee Remotes.ini de Recursos, no de aca
+remotes.ini
+
+# Variables de entorno (secretos de runtime): nunca versionar
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example

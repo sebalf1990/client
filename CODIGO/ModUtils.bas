@@ -416,6 +416,9 @@ Public Pjs(1 To MAX_PERSONAJES_EN_CUENTA) As UserCuentaPJS
 Public RecordarCuenta                     As Boolean
 Public CuentaRecordada                    As CuentasGuardadas
 Public CantidadDePersonajesEnCuenta       As Byte
+' Cupo de personajes de la cuenta segun su tier. Lo manda el server en
+' eAccountCharacterList (plan 30.001). Antes frmConnect usaba 10 hardcodeado.
+Public MaxPersonajesDeLaCuenta            As Byte
 Type UserCuentaPJS
     id As Long
     nombre As String

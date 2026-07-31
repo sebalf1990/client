@@ -6280,6 +6280,11 @@ End Sub
 #If PYMMO = 0 Then
     Public Sub HandleAccountCharacterList()
         CantidadDePersonajesEnCuenta = Reader.ReadInt
+        ' Plan 30.001: el cupo real de la cuenta lo manda el server (depende del
+        ' tier). Si por lo que sea llega en 0, se cae al tope absoluto para no
+        ' bloquear a nadie por un dato faltante: el server valida igual.
+        MaxPersonajesDeLaCuenta = Reader.ReadInt
+        If MaxPersonajesDeLaCuenta = 0 Then MaxPersonajesDeLaCuenta = MAX_PERSONAJES_EN_CUENTA
         Dim ii As Byte
         For ii = 1 To MAX_PERSONAJES_EN_CUENTA
             Pjs(ii).id = 0
