@@ -2448,7 +2448,11 @@ Private Sub Command4_Click()
 End Sub
 
 Private Sub creartoneo_Click()
+    ' TORNEO LEGACY ENTERRADO (2026-08-05): nunca fue inscribible (/PARTICIPAR
+    ' rutea al lobby) y el server ya rechaza los tres paquetes. Usar eventos/lobby.
     On Error GoTo creartoneo_Click_Err
+    Call ShowConsoleMsg("El sistema de torneos legacy fue retirado. Usa el panel de eventos/lobby.")
+    Exit Sub
     FrmTorneo.Show
     Exit Sub
 creartoneo_Click_Err:
@@ -3031,7 +3035,10 @@ torneo_cancelar_Click_Err:
 End Sub
 
 Private Sub torneo_comenzar_Click()
+    ' TORNEO LEGACY ENTERRADO (2026-08-05).
     On Error GoTo torneo_comenzar_Click_Err
+    Call ShowConsoleMsg("El sistema de torneos legacy fue retirado. Usa el panel de eventos/lobby.")
+    Exit Sub
     Call WriteComenzarTorneo
     Exit Sub
 torneo_comenzar_Click_Err:
