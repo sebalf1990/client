@@ -6030,6 +6030,7 @@ Public Sub HandleProfessionsUpdate()
     ' 1 = puede ejercer (ya considera toggle y privilegios de GM).
     On Error GoTo errhandler
     Dim i As Integer
+    ProfessionsActive = Reader.ReadInt8
     For i = 17 To 23
         UserProfessions(i) = Reader.ReadInt8
     Next i

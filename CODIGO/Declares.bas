@@ -1019,6 +1019,8 @@ Public UserSkills(1 To NUMSKILLS)        As Byte
 ' Plan 04.001: vista RESUELTA de profesiones que manda el server (1 = puede ejercer).
 ' Con el toggle professions_learnable apagado llega todo en 0 y rige la logica legacy.
 Public UserProfessions(17 To 23)         As Byte
+' 1 = el sistema de profesiones esta activo (primer byte de eProfessionsUpdate).
+Public ProfessionsActive                 As Byte
 Public SkillsNames(1 To NUMSKILLS)       As String
 Public SkillsDesc(1 To NUMSKILLS)        As String
 Public UserAtributos(1 To NUMATRIBUTOS)  As Byte
