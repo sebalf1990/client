@@ -1061,6 +1061,12 @@ Private PonerloEnRojo(1 To NUMSKILLS) As Boolean
 Private cBotonAceptar                 As clsGraphicalButton
 Private cBotonCerrar                  As clsGraphicalButton
 
+Private Function EsProfesionAprendida(ByVal i As Integer) As Boolean
+    ' Azul de profesion (plan 04.001): solo skills 17..23 con la vista del server en 1.
+    If i < 17 Or i > 23 Then Exit Function
+    EsProfesionAprendida = (UserProfessions(i) = 1)
+End Function
+
 Public Sub Iniciar_Labels()
     On Error GoTo Iniciar_Labels_Err
     'Iniciamos los labels con los valores de los atributos y los skills
@@ -1068,6 +1074,14 @@ Public Sub Iniciar_Labels()
     For i = 1 To NUMSKILLS
         If UserSkills(i) > 100 Then UserSkills(i) = 100
         Text1(i).Caption = UserSkills(i)
+        ' Plan 04.001: profesion aprendida (vista del server) se resalta en azul.
+        If i >= 17 And i <= 23 Then
+            If UserProfessions(i) = 1 Then
+                Text1(i).ForeColor = &HFFAA5A
+            Else
+                Text1(i).ForeColor = &HEA4EB
+            End If
+        End If
     Next
     Exit Sub
 Iniciar_Labels_Err:
@@ -1091,6 +1105,15 @@ Private Sub Command1_Click(Index As Integer)
         If Alocados > 0 Then
             indice = Index \ 2 + 1
             If indice > NUMSKILLS Then indice = NUMSKILLS
+            ' Aviso temprano (feedback smoke test 04.001): antes solo avisaba el
+            ' server al confirmar. Con el toggle apagado ProfessionsActive llega
+            ' en 0 y no se bloquea nada (comportamiento legacy).
+            If ProfessionsActive = 1 And indice >= 17 And indice <= 23 Then
+                If UserProfessions(indice) = 0 Then
+                    Call ShowConsoleMsg("Necesitas aprender la profesion antes de asignarle puntos.")
+                    Exit Sub
+                End If
+            End If
             If val(Text1(indice).Caption) < MAXSKILLPOINTS Then
                 Text1(indice).Caption = val(Text1(indice).Caption) + 1
                 flags(indice) = flags(indice) + 1
@@ -1117,7 +1140,7 @@ Private Sub Command1_Click(Index As Integer)
         PonerloEnRojo(indice) = True
     End If
     If UserSkills(indice) = ladder Then
-        Text1(indice).ForeColor = &H40C0&
+        Text1(indice).ForeColor = IIf(EsProfesionAprendida(CInt(indice)), &HFFAA5A, &H40C0&)
         RealizoCambios = RealizoCambios - 1
         PonerloEnRojo(indice) = False
     End If
@@ -1209,7 +1232,7 @@ Private Sub Form_MouseMove(Button As Integer, Shift As Integer, x As Single, y A
     Dim A As Integer
     For A = 1 To NUMSKILLS
         If Not PonerloEnRojo(A) Then
-            Text1(A).ForeColor = &HEA4EB
+            Text1(A).ForeColor = IIf(EsProfesionAprendida(A), &HFFAA5A, &HEA4EB)
             'Skills(a).ForeColor = vbWhite
         End If
         If PonerloEnRojo(A) = True Then
@@ -1297,7 +1320,7 @@ Private Sub Skills_MouseMove(Index As Integer, Button As Integer, Shift As Integ
     Dim A As Integer
     For A = 1 To NUMSKILLS
         If Not PonerloEnRojo(A) Then
-            Text1(A).ForeColor = &HEA4EB
+            Text1(A).ForeColor = IIf(EsProfesionAprendida(A), &HFFAA5A, &HEA4EB)
         End If
         'Skills(a).ForeColor = vbWhite
     Next A
