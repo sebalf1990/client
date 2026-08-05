@@ -428,6 +428,8 @@ Public Function HandleIncomingData(ByVal message As Network.Reader) As Boolean
                 Call HandleSendSkillCdUpdate
             Case ServerPacketID.eUpdatePoisonStacks
                 Call HandleUpdatePoisonStacks
+            Case ServerPacketID.eProfessionsUpdate
+                Call HandleProfessionsUpdate
             Case ServerPacketID.eDebugDataResponse
                 Call HandleDebugDataResponse
             Case ServerPacketID.eCreateProjectile
@@ -5270,6 +5272,12 @@ Private Sub HandleQuestDetails()
         subelemento.SubItems(4) = "typeSpell"
     Next i
     
+    ' Plan 04.001: requisito de profesion al final del paquete (0 = sin requisito).
+    tmpByte = Reader.ReadInt8
+    If tmpByte >= 17 And tmpByte <= 23 Then
+        requirements = requirements & "Profesion: " & SkillsNames(tmpByte) & vbCrLf
+    End If
+
     If Len(requirements) > 0 Then
         FrmQuests.detalle.Text = FrmQuests.detalle.Text & vbCrLf & vbCrLf & JsonLanguage.Item("MENSAJE_QUEST_REQUISITOS") & vbCrLf & requirements
     End If
@@ -6015,6 +6023,19 @@ Public Sub HandleUpdatePoisonStacks()
     Exit Sub
 errhandler:
     Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleUpdatePoisonStacks", Erl)
+End Sub
+
+Public Sub HandleProfessionsUpdate()
+    ' Plan 04.001: vista resuelta de profesiones del server (skills 17..23).
+    ' 1 = puede ejercer (ya considera toggle y privilegios de GM).
+    On Error GoTo errhandler
+    Dim i As Integer
+    For i = 17 To 23
+        UserProfessions(i) = Reader.ReadInt8
+    Next i
+    Exit Sub
+errhandler:
+    Call RegistrarError(Err.Number, Err.Description, "Protocol.HandleProfessionsUpdate", Erl)
 End Sub
 
 Public Sub HandleSendClientToggles()

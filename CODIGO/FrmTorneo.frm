@@ -1202,6 +1202,11 @@ Attribute VB_Exposed = False
 
 Private Sub Form_Load()
     Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
+    ' Plan 04.001: con profesiones activas la clase Trabajador no existe y el server
+    ' rechaza el torneo entero si se tilda; la vista del server (1 para un GM con el
+    ' toggle encendido) decide si el checkbox tiene sentido.
+    Check9.Enabled = (UserProfessions(eSkill.Talar) = 0)
+    If Not Check9.Enabled Then Check9.value = 0
     FrmTorneo.Caption = JsonLanguage.Item("MENSAJE_ORGANIZACION_EVENTO")
     FraTorneosY.Caption = JsonLanguage.Item("MENSAJE_TORNEOS_EVENTOS")
     lblSeleccionarEl.Caption = JsonLanguage.Item("MENSAJE_SELECCIONAR_EVENTO") ' Seleccionar el evento a realizar

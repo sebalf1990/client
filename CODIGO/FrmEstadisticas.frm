@@ -1068,6 +1068,14 @@ Public Sub Iniciar_Labels()
     For i = 1 To NUMSKILLS
         If UserSkills(i) > 100 Then UserSkills(i) = 100
         Text1(i).Caption = UserSkills(i)
+        ' Plan 04.001: profesion aprendida (vista del server) se resalta en azul.
+        If i >= 17 And i <= 23 Then
+            If UserProfessions(i) = 1 Then
+                Text1(i).ForeColor = &HFFAA5A
+            Else
+                Text1(i).ForeColor = &HEA4EB
+            End If
+        End If
     Next
     Exit Sub
 Iniciar_Labels_Err:

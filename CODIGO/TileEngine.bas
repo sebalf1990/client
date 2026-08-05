@@ -916,7 +916,9 @@ Function LegalPos(ByVal x As Integer, ByVal y As Integer, ByVal Heading As E_Hea
         Exit Function
     End If
     If MapData(x, y).Trigger = WORKERONLY Then
-        If Not UserStats.Clase = Trabajador Then Exit Function
+        ' Plan 04.001: la vista de profesiones del server manda (Mineria abre las
+        ' minas); con el toggle apagado llega en cero y rige la clase legacy.
+        If UserProfessions(eSkill.Mineria) = 0 And Not UserStats.Clase = Trabajador Then Exit Function
     End If
     If UserNadando And MapData(x, y).Trigger = DETALLEAGUA Then
         LegalPos = True
