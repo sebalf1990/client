@@ -355,8 +355,15 @@ Private Sub Form_Load()
     cmbTipo.List(1) = JsonLanguage.Item("MENSAJE_EVENTO_CACERIA")
     cmbTipo.List(2) = JsonLanguage.Item("MENSAJE_EVENTO_DEATHMATCH")
     cmbTipo.List(3) = JsonLanguage.Item("MENSAJE_EVENTO_ABORDAJE")
-    cmbEquipos.List(0) = JsonLanguage.Item("MENSAJE_EVENTO_MODALIDAD_RANDOM")
-    cmbEquipos.List(1) = JsonLanguage.Item("MENSAJE_EVENTO_MODALIDAD_GRUPOS")
+    ' Plan 05.002 ola 9: estaban al reves. btnCrear_Click mapea sobre cmbEquipos.ListIndex
+    ' contra el enum e_TeamTypes (ePremade=0, eRandom=1, identico en cliente Declares.bas:86
+    ' y server ModLobby.bas:48), asi que elegir 'Aleatorio' en el indice 0 mandaba ePremade:
+    ' el lobby exigia grupo armado del tamaño exacto de TeamSize y los sueltos rebotaban con
+    ' MsgTeamRequiredToJoin sin que el GM entendiera por que. Se da vuelta la LISTA y no el
+    ' Select, para que el orden de las etiquetas quede alineado con el valor del enum, que es
+    ' lo mismo que ya hace frmLobbyBattleground.frm:190-193 al mostrarlo.
+    cmbEquipos.List(0) = JsonLanguage.Item("MENSAJE_EVENTO_MODALIDAD_GRUPOS")
+    cmbEquipos.List(1) = JsonLanguage.Item("MENSAJE_EVENTO_MODALIDAD_RANDOM")
     cmbTipo.ListIndex = 0
     cmbEquipos.ListIndex = 0
     tMinLvl.text = 1
@@ -395,6 +402,23 @@ Private Sub btnCrear_Click()
         tMinPlayers.SetFocus
         Exit Sub
     End If
+    ' Plan 05.002 ola 9: la validacion va ANTES de la asignacion y sobre el TEXTO.
+    ' Settings.TeamSize es Byte, asi que un "-5" o un "300" -que tSize_Change deja
+    ' pasar porque son numericos- desbordan EN la asignacion, antes de cualquier
+    ' guarda posterior. Sin el Resume Next que saca el cambio 22, el click moriria
+    ' mudo: sin MsgBox, sin paquete, y sin que el GM entienda por que no pasa nada.
+    ' Plan 05.002 ola 9: la validacion va ANTES de la asignacion y sobre el TEXTO, no sobre
+    ' Settings.TeamSize, que es Byte: un "-5" o un "300" -que tSize_Change deja pasar porque
+    ' son numericos- desbordan EN la asignacion misma, antes de cualquier guarda posterior.
+    ' Y sin el Resume Next que saca el cambio 22, ahi el click moriria mudo: sin MsgBox, sin
+    ' paquete, y sin que el GM entienda por que el boton no hace nada.
+    ' El limite de 1 cubre tambien el 0, que es el que hacia estallar el Mod de mas abajo con
+    ' error 11 (Division by zero). Mismo patron que la ola 5 arreglo del lado server.
+    If val(tSize.text) < 1 Or val(tSize.text) > 40 Then
+        Call MsgBox(JsonLanguage.Item("MENSAJE_LIMITE_JUGADORES_DIVISIBLE"), vbExclamation)
+        tSize.SetFocus
+        Exit Sub
+    End If
     Settings.TeamSize = val(tSize.text)
     If Settings.MinPlayers Mod Settings.TeamSize <> 0 Or Settings.MaxPlayers Mod Settings.TeamSize <> 0 Then
         Call MsgBox(JsonLanguage.Item("MENSAJE_LIMITE_JUGADORES_DIVISIBLE"), vbExclamation)
@@ -421,8 +445,10 @@ Private Sub btnCrear_Click()
     Unload Me
     Exit Sub
 errhandler:
+    ' Plan 05.002 ola 9: Resume Next en un handler de click retoma en la linea SIGUIENTE a
+    ' la que fallo, o sea que seguia de largo hasta WriteStartLobby y mandaba el paquete a
+    ' medio armar. Sin Resume, el error queda logueado y la sub termina.
     Call RegistrarError(Err.Number, Err.Description, "frmCreateBattleGround.btnCrear", Erl)
-    Resume Next
 End Sub
 
 Private Sub chkPassword_Click()

@@ -80,6 +80,12 @@ End Sub
 
 Private Sub Form_Load()
     Call ModMenuTransparency.MenuTransparency_ApplyToForm(Me.hWnd)
+    ' Plan 05.002 ola 9: este form NO se abre desde el panel GM, lo dispara el server con
+    ' WriteUpdateLobbyList cuando CUALQUIER jugador habla con un NPC EventMaster
+    ' (WorldActions.bas:463). Desde el gate de la ola 1, el server rechaza el eStartEvent del
+    ' no-staff Y ADEMAS escribe LogSecurity con nombre e IP: cada curioso que tocaba 'Crear'
+    ' generaba un falso intento de intrusion. Mismo criterio del server, replicado en la UI.
+    btnCrear.Visible = EsGM
     ListRefresh
 End Sub
 

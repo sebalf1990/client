@@ -2448,11 +2448,13 @@ Private Sub Command4_Click()
 End Sub
 
 Private Sub creartoneo_Click()
-    ' TORNEO LEGACY ENTERRADO (2026-08-05): nunca fue inscribible (/PARTICIPAR
-    ' rutea al lobby) y el server ya rechaza los tres paquetes. Usar eventos/lobby.
+    ' Plan 05.002 ola 9: se REABRE FrmTorneo. Enterrarlo (2026-08-05) mato el UNICO acceso
+    ' al form ('FrmTorneo.Show' aparece una sola vez en todo dev/client, aca), y ese form no
+    ' era solo el torneo legacy: adentro viven la config de Caceria, DeathMatch, Abordaje
+    ' (con su validacion de participantes PAR), Captura, Busqueda del Tesoro y los 8 botones
+    ' de /configlobby. El torneo legacy se neutraliza ADENTRO del form (OptTorneo invisible
+    ' en Form_Load), que es lo unico que habia que enterrar.
     On Error GoTo creartoneo_Click_Err
-    Call ShowConsoleMsg("El sistema de torneos legacy fue retirado. Usa el panel de eventos/lobby.")
-    Exit Sub
     FrmTorneo.Show
     Exit Sub
 creartoneo_Click_Err:
