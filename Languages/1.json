@@ -3,6 +3,7 @@
 	"MENSAJE_NOMBRE_PERSONAJE_INVALIDO": "Nombre de personaje inválido.",
 	"MENSAJE_TITULO_MISION": "Misión",
     "MENSAJE_CODIGO_INVALIDO": "Código inválido.",
+	"ADVERTENCIA_LIMITE_PERSONAJES": "Llegaste al límite de personajes de tu cuenta. Borra uno o mejora tu cuenta para crear más.",
 	"MENSAJE_PERSONAJE_BORRADO": "Personaje borrado correctamente.",
     "MENSAJE_PERSONAJE_BLOQUEADO_MAO": "No se puede eliminar el personaje listado en MAO.",
     "MENSAJE_CUENTA_INVALIDA": "Cuenta inválida.",

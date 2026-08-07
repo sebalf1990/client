@@ -3,6 +3,7 @@
   "MENSAJE_NOMBRE_PERSONAJE_INVALIDO": "Nome del personaggio non valido.",
   "MENSAJE_TITULO_MISION": "Missione",
   "MENSAJE_CODIGO_INVALIDO": "Codice non valido.",
+  "ADVERTENCIA_LIMITE_PERSONAJES": "Hai raggiunto il limite di personaggi del tuo account. Eliminane uno o migliora il tuo account.",
   "MENSAJE_PERSONAJE_BORRADO": "Personaggio cancellato correttamente.",
   "MENSAJE_PERSONAJE_BLOQUEADO_MAO": "Non è possibile eliminare il personaggio elencato in MAO.",
   "MENSAJE_CUENTA_INVALIDA": "Account non valido.",

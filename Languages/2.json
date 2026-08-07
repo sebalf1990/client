@@ -3,6 +3,7 @@
 	"MENSAJE_NOMBRE_PERSONAJE_INVALIDO": "Invalid character name.",
 	"MENSAJE_TITULO_MISION": "Mission",
     "MENSAJE_CODIGO_INVALIDO": "Invalid code.",
+	"ADVERTENCIA_LIMITE_PERSONAJES": "You have reached your account character limit. Delete one or upgrade your account to create more.",
 	"MENSAJE_PERSONAJE_BORRADO": "Character deleted successfully.",
     "MENSAJE_PERSONAJE_BLOQUEADO_MAO": "Cannot delete character listed in MAO.",
 	"MENSAJE_CUENTA_INVALIDA": "Invalid account.",

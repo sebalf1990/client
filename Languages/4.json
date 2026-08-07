@@ -3,6 +3,7 @@
   "MENSAJE_NOMBRE_PERSONAJE_INVALIDO": "Nom de personnage invalide.",
   "MENSAJE_TITULO_MISION": "Mission",
   "MENSAJE_CODIGO_INVALIDO": "Code invalide.",
+  "ADVERTENCIA_LIMITE_PERSONAJES": "Vous avez atteint la limite de personnages de votre compte. Supprimez-en un ou améliorez votre compte.",
   "MENSAJE_PERSONAJE_BORRADO": "Personnage supprimé avec succès.",
   "MENSAJE_PERSONAJE_BLOQUEADO_MAO": "Impossible de supprimer le personnage listé dans MAO.",
   "MENSAJE_CUENTA_INVALIDA": "Compte invalide.",
