@@ -802,6 +802,12 @@ Sub Main()
     Call Frmcarga.Show
     Set FormParser = New clsCursor
     Call FormParser.Init
+    ' Upstream 96e50dd, tomado por PARIDAD con el oficial. Alla SetDllDirectory tiene que ir
+    ' antes de ValidateResources porque su GetCrc32 vive en AOACClient.dll. En NUESTRO fork
+    ' ValidateResources es un stub y GetCrc32 no se invoca: hoy no hay dependencia real.
+    ' OJO: esta linea vivia dentro de un #If (DEBUGGING = 0 Or ENABLE_ANTICHEAT = 1) que en
+    ' nuestro build de dev da False, o sea que NUNCA se ejecutaba. Ahora corre siempre.
+    SetDllDirectory App.path
     If Not ValidateResources Then
         Call MsgBox(JsonLanguage.Item("MENSAJEBOX_RECURSOS_INVALIDOS"), vbApplicationModal + vbInformation + vbOKOnly, JsonLanguage.Item("MENSAJEBOX_TITULO_RECURSOS_INVALIDOS"))
         End
@@ -819,7 +825,6 @@ Sub Main()
     #End If
     Call InitCommonControls
     #If DEBUGGING = 0 Or ENABLE_ANTICHEAT = 1 Then
-        SetDllDirectory App.path
         #If No_Api_Steam = 0 Then
             Dim steam_init_result As Long
             steam_init_result = svb_init_steam(1956740)
