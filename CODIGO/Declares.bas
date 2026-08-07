@@ -731,13 +731,21 @@ Public Enum eClass
     Bandit      'Bandido
 End Enum
 
+'' IDs de ciudad: DEBEN coincidir uno a uno con e_Ciudad del server (Declares.bas).
+' 06.002/07.001: faltaban cArkhein, cEldoria y cPenthar, asi que cForgat valia 6 aca y 7
+' alla: elegir Forgat al crear personaje te hacia ciudadano de ARKHEIN (bug vivo desde
+' el commit "Ciudad de Forgat" de 2024). Lo que se OFRECE en pantalla ya no depende de
+' este enum: ver ListaCiudades/CiudadesOfrecidas.
 Public Enum eCiudad
     cUllathorpe = 1
     cNix
     cBanderbill
     cLindos
     cArghal
+    cArkhein
     cForgat
+    cEldoria
+    cPenthar
 End Enum
 
 Enum eRaza
@@ -1004,7 +1012,9 @@ Public Const NUMSKILLS                          As Byte = 24
 Public Const NUMATRIBUTOS                       As Byte = 5
 Public Const NUMCLASES                          As Byte = 12
 Public Const NUMRAZAS                           As Byte = 6
-Public Const NUMCIUDADES                        As Byte = 6
+' Cantidad de ciudades OFRECIDAS al crear personaje (no es la cantidad de ciudades del
+' juego): la lista visible se desacoplo del enum en el plan 07.001.
+Public Const NUMCIUDADES                        As Byte = 4
 Type tModRaza
     Fuerza As Integer
     Agilidad As Integer
@@ -1015,6 +1025,9 @@ End Type
 
 Public ModRaza(1 To NUMRAZAS)            As tModRaza
 Public ListaCiudades(1 To NUMCIUDADES)   As String
+' Id de ciudad (eCiudad) de cada entrada de ListaCiudades, en el mismo orden. El indice
+' de la lista NO es el id: para mandarle el hogar al server se usa HogarSeleccionado().
+Public CiudadesOfrecidas(1 To NUMCIUDADES) As eCiudad
 Public UserSkills(1 To NUMSKILLS)        As Byte
 ' Plan 04.001: vista RESUELTA de profesiones que manda el server (1 = puede ejercer).
 ' Con el toggle professions_learnable apagado llega todo en 0 y rige la logica legacy.

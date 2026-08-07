@@ -494,7 +494,7 @@ End Sub
                     UserStats.Raza = frmCrearPersonaje.lstRaza.ListIndex + 1
                     UserStats.Sexo = frmCrearPersonaje.lstGenero.ListIndex + 1
                     UserStats.Clase = frmCrearPersonaje.lstProfesion.ListIndex + 1
-                    UserStats.Hogar = frmCrearPersonaje.lstHogar.ListIndex + 1
+                    UserStats.Hogar = HogarSeleccionado(frmCrearPersonaje.lstHogar.ListIndex)
                     If frmCrearPersonaje.CheckData() Then
                         UserPassword = CuentaPassword
                         StopCreandoCuenta = True
@@ -817,7 +817,7 @@ Private Sub render_MouseUp(Button As Integer, Shift As Integer, x As Single, y A
                 UserStats.Raza = frmCrearPersonaje.lstRaza.ListIndex + 1
                 UserStats.Sexo = frmCrearPersonaje.lstGenero.ListIndex + 1
                 UserStats.Clase = frmCrearPersonaje.lstProfesion.ListIndex + 1
-                UserStats.Hogar = frmCrearPersonaje.lstHogar.ListIndex + 1
+                UserStats.Hogar = HogarSeleccionado(frmCrearPersonaje.lstHogar.ListIndex)
                
                 If frmCrearPersonaje.CheckData() Then
                     UserPassword = CuentaPassword
@@ -1076,30 +1076,28 @@ Private Sub Rotacion_boton_atras_clase()
     End Select
 End Sub
 
+' 07.001: rotacion generica sobre las ciudades OFRECIDAS. Antes estaba hardcodeada con
+' 4 casos del enum, asi que agregar o sacar una ciudad exigia tocar dos Selects.
 Private Sub Rotacion_boton_adelante_ciudades()
-    Select Case frmCrearPersonaje.lstHogar.ListIndex
-        Case eCiudad.cUllathorpe - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cNix - 1
-        Case eCiudad.cNix - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cBanderbill - 1
-        Case eCiudad.cBanderbill - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cArghal - 1
-        Case eCiudad.cArghal - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cUllathorpe - 1
-    End Select
+    With frmCrearPersonaje.lstHogar
+        If .ListCount <= 0 Then Exit Sub
+        If .ListIndex >= .ListCount - 1 Then
+            .ListIndex = 0
+        Else
+            .ListIndex = .ListIndex + 1
+        End If
+    End With
 End Sub
 
 Private Sub Rotacion_boton_atras_ciudades()
-    Select Case frmCrearPersonaje.lstHogar.ListIndex
-        Case eCiudad.cUllathorpe - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cArghal - 1
-        Case eCiudad.cArghal - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cBanderbill - 1
-        Case eCiudad.cBanderbill - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cNix - 1
-        Case eCiudad.cNix - 1
-            frmCrearPersonaje.lstHogar.ListIndex = eCiudad.cUllathorpe - 1
-    End Select
+    With frmCrearPersonaje.lstHogar
+        If .ListCount <= 0 Then Exit Sub
+        If .ListIndex <= 0 Then
+            .ListIndex = .ListCount - 1
+        Else
+            .ListIndex = .ListIndex - 1
+        End If
+    End With
 End Sub
 
 Private Sub txtNombre_Change()

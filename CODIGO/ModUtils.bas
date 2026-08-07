@@ -642,6 +642,22 @@ Public Sub LogError(desc As String)
 errhandler:
 End Sub
 
+' Traduce el indice seleccionado de lstHogar al ID DE CIUDAD que espera el server.
+' 07.001: antes se mandaba ListIndex + 1, que ataba la posicion en pantalla al valor del
+' enum; con los dos enums desalineados eso hacia nacer al jugador en otra ciudad.
+Public Function HogarSeleccionado(ByVal Indice As Integer) As Integer
+    On Error GoTo HogarSeleccionado_Err
+    If Indice < 0 Or Indice > NUMCIUDADES - 1 Then
+        HogarSeleccionado = eCiudad.cUllathorpe
+        Exit Function
+    End If
+    HogarSeleccionado = CiudadesOfrecidas(Indice + 1)
+    Exit Function
+HogarSeleccionado_Err:
+    Call RegistrarError(Err.Number, Err.Description, "ModUtils.HogarSeleccionado", Erl)
+    HogarSeleccionado = eCiudad.cUllathorpe
+End Function
+
 Sub IniciarCrearPj()
     On Error GoTo IniciarCrearPj_Err
     StopCreandoCuenta = False
