@@ -5980,9 +5980,15 @@ Public Sub HandleSendSkillCdUpdate()
     ElapsedTime = Reader.ReadInt32
     Effect.duration = Reader.ReadInt32
     Effect.EffectType = Reader.ReadInt8
+    Effect.StackCount = Reader.ReadInt16()
+    ' 06.002 Ola 4: consumir TODOS los campos antes de indexar EffectResources. Un TypeId fuera
+    ' de catalogo tiraba error 9 con StackCount sin leer: 2 bytes huerfanos desalineaban el stream.
+    If Effect.TypeId < LBound(EffectResources) Or Effect.TypeId > UBound(EffectResources) Then
+        Call RegistrarError(9, "TypeId fuera de EffectResources", "Protocol.HandleSendSkillCdUpdate " & Effect.TypeId, 0)
+        Exit Sub
+    End If
     Effect.Grh = EffectResources(Effect.TypeId).GrhId
     Effect.startTime = GetTickCount() - (Effect.duration - ElapsedTime)
-    Effect.StackCount = Reader.ReadInt16()
     If Effect.EffectType = eBuff Then
         Call AddOrUpdateEffect(BuffList, Effect)
     End If
