@@ -4280,8 +4280,8 @@ Private Sub HandleGuildNews()
     Dim List()      As String
     Dim i           As Long
     Dim ClanNivel   As Byte
-    Dim expacu      As Integer
-    Dim ExpNe       As Integer
+    Dim expacu      As Long
+    Dim ExpNe       As Long
     Dim guildList() As String
     frmGuildNews.news = Reader.ReadString8()
     'Get list of existing guilds
@@ -4305,8 +4305,8 @@ Private Sub HandleGuildNews()
         'frmdebug.add_text_tracebox guildList(i)
     Next i
     ClanNivel = Reader.ReadInt8()
-    expacu = Reader.ReadInt16()
-    ExpNe = Reader.ReadInt16()
+    expacu = Reader.ReadInt32()
+    ExpNe = Reader.ReadInt32()
     With frmGuildNews
         .lblMiembros.Caption = cantidad
         .expcount.Caption = expacu & "/" & ExpNe
@@ -4477,13 +4477,13 @@ Private Sub HandleGuildLeaderInfo()
                 Call .solicitudes.AddItem(List(i))
             Next i
         End If
-        Dim expacu As Integer
-        Dim ExpNe  As Integer
+        Dim expacu As Long
+        Dim ExpNe  As Long
         Dim Nivel  As Byte
         Nivel = Reader.ReadInt8()
         .Nivel = Nivel
-        expacu = Reader.ReadInt16()
-        ExpNe = Reader.ReadInt16()
+        expacu = Reader.ReadInt32()
+        ExpNe = Reader.ReadInt32()
         'barra
         .expcount.Caption = expacu & "/" & ExpNe
         If ExpNe > 0 Then
