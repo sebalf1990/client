@@ -5129,9 +5129,9 @@ Private Sub HandleQuestDetails()
     Dim i              As Integer
     Dim cantidadnpc    As Integer
     Dim NpcIndex       As Integer
-    Dim cantidadobj    As Integer
+    Dim cantidadobj    As Long
     Dim ObjIndex       As Integer
-    Dim AmountHave     As Integer
+    Dim AmountHave     As Long
     Dim QuestIndex     As Integer
     Dim RequiredLevel As Byte
     Dim LimitLevel As Byte
@@ -5207,9 +5207,10 @@ Private Sub HandleQuestDetails()
     tmpByte = Reader.ReadInt8
     If tmpByte Then 'Hay OBJs
         For i = 1 To tmpByte
-            cantidadobj = Reader.ReadInt16
+            ' Plan 07.001: amount y "tiene" a Int32 (montos de oro grandes); ObjIndex sigue Int16.
+            cantidadobj = Reader.ReadInt32
             ObjIndex = Reader.ReadInt16
-            AmountHave = Reader.ReadInt16
+            AmountHave = Reader.ReadInt32
             Set subelemento = FrmQuests.ListView1.ListItems.Add(, , ObjData(ObjIndex).Name)
             subelemento.SubItems(1) = AmountHave & "/" & cantidadobj
             subelemento.SubItems(2) = ObjIndex
@@ -5400,7 +5401,8 @@ Public Sub HandleNpcQuestListSend()
         If requiredObjCount > 0 Then
             ReDim QuestList(QuestIndex).RequiredOBJ(1 To requiredObjCount)
             For i = 1 To requiredObjCount
-                QuestList(QuestIndex).RequiredOBJ(i).Amount = Reader.ReadInt16
+                ' Plan 07.001: amount a Int32 (espejo de HandleQuestDetails), ObjIndex sigue Int16.
+                QuestList(QuestIndex).RequiredOBJ(i).Amount = Reader.ReadInt32
                 QuestList(QuestIndex).RequiredOBJ(i).ObjIndex = Reader.ReadInt16
             Next i
         Else

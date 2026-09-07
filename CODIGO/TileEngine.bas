@@ -292,7 +292,7 @@ End Type
 'Info de un objeto
 Public Type Obj
     ObjIndex As Integer
-    Amount As Integer
+    Amount As Long
     ElementalTags As Long
 End Type
 
