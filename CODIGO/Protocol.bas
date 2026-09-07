@@ -6110,7 +6110,8 @@ Public Sub HandleObjQuestListSend()
     If tmpByte Then 'Hay OBJs
         ReDim QuestList(QuestIndex).RequiredOBJ(1 To tmpByte)
         For i = 1 To tmpByte
-            QuestList(QuestIndex).RequiredOBJ(i).Amount = Reader.ReadInt16
+            ' Plan 07.001: amount a Int32 (espejo de HandleQuestDetails/HandleNpcQuestListSend), ObjIndex sigue Int16.
+            QuestList(QuestIndex).RequiredOBJ(i).Amount = Reader.ReadInt32
             QuestList(QuestIndex).RequiredOBJ(i).ObjIndex = Reader.ReadInt16
         Next i
     Else
