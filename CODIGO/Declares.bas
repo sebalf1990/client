@@ -711,9 +711,12 @@ Public Const FLAG_AGUA               As Integer = &H20
 Public Const FLAG_ARBOL              As Integer = &H40
 Public Const FLAG_COSTA              As Integer = &H80
 Public Const FLAG_LAVA               As Integer = &H100
-' Upstream 8751439: los mapas oficiales reusan los triggers 19..59 para otra cosa; con 19
-' el cliente dibujaba techos de mas.
-Public Const PRIMER_TRIGGER_TECHO    As Byte = 60
+' Upstream 8751439 subio esto a 60 junto con una renumeracion de los mapas oficiales (en el pack
+' de Steam de 2026-09 todos los grupos de techo son >= 60). Nuestros mapas siguen con los grupos
+' legacy 21..59 (17.993 tiles de capa 4 en 90 mapas) y la carcel usa el 19, asi que con 60 no
+' desvanecia ningun comercio ni iglesia. Se vuelve a 19: cubre los grupos viejos y los nuevos.
+' Ver plan 07.001 (correccion del 2026-09-15).
+Public Const PRIMER_TRIGGER_TECHO    As Byte = 19
 Public Const FOgata                  As Integer = 1521
 Public Const INV_FLAG_AGUA           As Single = 1 / FLAG_AGUA
 Public Const INV_FLAG_LAVA           As Single = 1 / FLAG_LAVA
