@@ -619,6 +619,7 @@ Begin VB.Form frmEstadisticas
       Left            =   2805
       TabIndex        =   6
       Top             =   6780
+      Visible         =   0   'False
       Width           =   285
    End
    Begin VB.Label text1 
@@ -685,6 +686,7 @@ Begin VB.Form frmEstadisticas
       Left            =   5955
       TabIndex        =   3
       Top             =   6780
+      Visible         =   0   'False
       Width           =   285
    End
    Begin VB.Label text1 
@@ -839,6 +841,7 @@ Begin VB.Form frmEstadisticas
       Left            =   3225
       Tag             =   "0"
       Top             =   6750
+      Visible         =   0   'False
       Width           =   330
    End
    Begin VB.Image command1 
@@ -863,6 +866,7 @@ Begin VB.Form frmEstadisticas
       Left            =   6360
       Tag             =   "0"
       Top             =   6750
+      Visible         =   0   'False
       Width           =   330
    End
    Begin VB.Image command1 
@@ -967,6 +971,7 @@ Begin VB.Form frmEstadisticas
       Left            =   2325
       Tag             =   "0"
       Top             =   6750
+      Visible         =   0   'False
       Width           =   330
    End
    Begin VB.Image command1 
@@ -991,6 +996,7 @@ Begin VB.Form frmEstadisticas
       Left            =   5460
       Tag             =   "0"
       Top             =   6750
+      Visible         =   0   'False
       Width           =   330
    End
    Begin VB.Image command1 
