@@ -2783,7 +2783,7 @@ Private Sub mnuManual_Click()
     On Error GoTo mnuManual_Click_Err
     nick = ReadField(1, List1.List(List1.ListIndex), Asc("("))
     Call ParseUserCommand("/MENSAJEINFORMACION " & nick & "@" & _
-            "Su consulta fue rechazada debido a que la respuesta se encuentra en el Manual o FAQ de nuestra pagina web. Para mas información visite: www.argentum20.com.ar.")
+            "Su consulta fue rechazada debido a que la respuesta se encuentra en la ayuda o preguntas frecuentes de nuestra pagina web. Para mas información visite: https://nuevaeticaao.com/ayuda")
     Exit Sub
 mnuManual_Click_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmPanelGM.mnuManual_Click", Erl)

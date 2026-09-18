@@ -31,6 +31,7 @@ Begin VB.Form frmMensajePapiro
       Left            =   6720
       TabIndex        =   9
       Top             =   3960
+      Visible         =   0   'False
       Width           =   1575
    End
    Begin VB.Label Stream1 
@@ -51,6 +52,7 @@ Begin VB.Form frmMensajePapiro
       Left            =   6360
       TabIndex        =   8
       Top             =   3600
+      Visible         =   0   'False
       Width           =   2295
    End
    Begin VB.Label CafecitoLink 
@@ -72,12 +74,13 @@ Begin VB.Form frmMensajePapiro
       Left            =   4560
       TabIndex        =   7
       Top             =   6225
+      Visible         =   0   'False
       Width           =   1095
    End
    Begin VB.Label PatreonLink 
       Alignment       =   2  'Center
       BackStyle       =   0  'Transparent
-      Caption         =   "Ayudar con Patreon"
+      Caption         =   "Ayudar con una suscripción"
       BeginProperty Font 
          Name            =   "Palatino Linotype"
          Size            =   9
@@ -93,7 +96,7 @@ Begin VB.Form frmMensajePapiro
       Left            =   3285
       TabIndex        =   6
       Top             =   6225
-      Width           =   1020
+      Width           =   2370
    End
    Begin VB.Label GameRulesLink 
       BackStyle       =   0  'Transparent
@@ -245,15 +248,11 @@ Private Const WS_EX_LAYERED = &H80000
 Private Const LWA_COLORKEY = &H1&
 
 Private Sub BasicInfoLink_Click()
-    Call OpenLink("https://www.argentumonline.com.ar/wiki")
-End Sub
-
-Private Sub CafecitoLink_Click(Index As Integer)
-    Call OpenLink("https://cafecito.app/nolandstudios")
+    Call OpenLink("https://nuevaeticaao.com/ayuda")
 End Sub
 
 Private Sub eventNews_Click()
-    Call OpenLink("https://discord.com/channels/761213868352471040/1225542315507056762")
+    Call OpenLink("https://nuevaeticaao.com/noticias")
 End Sub
 
 Private Sub Form_Load()
@@ -267,11 +266,11 @@ Private Sub Form_LostFocus()
 End Sub
 
 Private Sub GameRulesLink_Click(Index As Integer)
-    Call OpenLink("https://www.argentumonline.com.ar/reglamento")
+    Call OpenLink("https://nuevaeticaao.com/reglas")
 End Sub
 
 Private Sub HelpGuideLink_Click()
-    Call OpenLink("https://www.argentumonline.com.ar/wiki/guia-general/skills-clases")
+    Call OpenLink("https://nuevaeticaao.com/ayuda")
 End Sub
 
 Private Sub Image1_Click()
@@ -279,7 +278,7 @@ Private Sub Image1_Click()
 End Sub
 
 Private Sub newsLink_Click()
-    Call OpenLink("https://steamcommunity.com/app/1956740/allnews/")
+    Call OpenLink("https://nuevaeticaao.com/noticias")
 End Sub
 
 Private Sub OpenLink(link As String)
@@ -287,13 +286,6 @@ Private Sub OpenLink(link As String)
 End Sub
 
 Private Sub PatreonLink_Click(Index As Integer)
-    Call OpenLink("https://www.patreon.com/nolandstudios")
+    Call OpenLink("https://nuevaeticaao.com/premium")
 End Sub
 
-Private Sub Stream1_Click()
-    Call OpenLink("https://www.twitch.tv/argentumonlineoficial")
-End Sub
-
-Private Sub Stream2_Click()
-    Call OpenLink("https://www.twitch.tv/Plus_1986")
-End Sub
