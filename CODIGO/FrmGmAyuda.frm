@@ -21,6 +21,7 @@ Begin VB.Form FrmGmAyuda
       MaskColor       =   &H00404080&
       TabIndex        =   8
       Top             =   840
+      Visible         =   0   'False
       Width           =   1695
    End
    Begin VB.OptionButton optConsulta 
@@ -279,10 +280,6 @@ End Sub
 
 Private Sub cmdCerrar_Click()
     Unload Me
-End Sub
-
-Private Sub cmdButtonEntrarForo_Click()
-    Call ShellExecute(0, "Open", "https://www.elmesonhostigado.com/foro", "", App.path, 1)
 End Sub
 
 Private Sub Form_Load()
