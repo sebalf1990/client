@@ -477,6 +477,7 @@ Begin VB.Form frmOpciones
       Left            =   4270
       Tag             =   "0"
       Top             =   6840
+      Visible         =   0   'False
       Width           =   300
    End
    Begin VB.Image instagram 
@@ -484,6 +485,7 @@ Begin VB.Form frmOpciones
       Left            =   4650
       Tag             =   "0"
       Top             =   6840
+      Visible         =   0   'False
       Width           =   300
    End
    Begin VB.Image discord 
@@ -491,6 +493,7 @@ Begin VB.Form frmOpciones
       Left            =   3520
       Tag             =   "0"
       Top             =   6840
+      Visible         =   0   'False
       Width           =   300
    End
    Begin VB.Image cmdChangePassword 
@@ -1114,7 +1117,7 @@ End Sub
 
 Private Sub cmdWeb_Click()
     On Error GoTo cmdWeb_Click_Err
-    ShellExecute Me.hWnd, "open", "https://www.argentumonline.com.ar/", "", "", 0
+    ShellExecute Me.hWnd, "open", "https://nuevaeticaao.com/", "", "", 0
     Exit Sub
 cmdWeb_Click_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmOpciones.cmdWeb_Click", Erl)
@@ -1127,24 +1130,6 @@ Private Sub Command5_Click()
     Exit Sub
 Command5_Click_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmOpciones.Command5_Click", Erl)
-    Resume Next
-End Sub
-
-Private Sub discord_Click()
-    On Error GoTo discord_Click_Err
-    ShellExecute Me.hWnd, "open", "https://discord.gg/hvaA8eMm43", "", "", 0
-    Exit Sub
-discord_Click_Err:
-    Call RegistrarError(Err.Number, Err.Description, "frmOpciones.discord_Click", Erl)
-    Resume Next
-End Sub
-
-Private Sub facebook_Click()
-    On Error GoTo facebook_Click_Err
-    ShellExecute Me.hWnd, "open", "https://facebook.com/argentumonlineoficial", "", "", 0
-    Exit Sub
-facebook_Click_Err:
-    Call RegistrarError(Err.Number, Err.Description, "frmOpciones.facebook_Click", Erl)
     Resume Next
 End Sub
 
@@ -1395,15 +1380,6 @@ Private Sub HScroll1_Change()
     Exit Sub
 HScroll1_Change_Err:
     Call RegistrarError(Err.Number, Err.Description, "frmOpciones.HScroll1_Change", Erl)
-    Resume Next
-End Sub
-
-Private Sub instagram_Click()
-    On Error GoTo instagram_Click_Err
-    ShellExecute Me.hWnd, "open", "https://instagram.com/argentumonlineoficial", "", "", 0
-    Exit Sub
-instagram_Click_Err:
-    Call RegistrarError(Err.Number, Err.Description, "frmOpciones.instagram_Click", Erl)
     Resume Next
 End Sub
 
