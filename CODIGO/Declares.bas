@@ -826,7 +826,7 @@ Public Enum eObjType
     otContenedores = 7
     otCarteles = 8
     otLlaves = 9
-    otForos = 10
+    ' 10 = otForos: sin uso, ningun objeto lo tiene (plan 17.001 D40)
     otPociones = 11
     otBebidas = 13
     otLeña = 14
@@ -865,6 +865,10 @@ Public Enum eObjType
     OtDonador = 50
     OtQuest = 51
     otFishingPool = 52
+    otUsableOntarget = 53
+    ' 54 = otPlants: tipo muerto, eliminado tambien en el server (plan 02.001)
+    otElementalRune = 55
+    otFactionForgiveness = 56
     otCualquiera = 1000
 End Enum
 
