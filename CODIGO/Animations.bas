@@ -70,10 +70,19 @@ End Sub
 Sub UpdateFx(ByRef animationState As tAnimationPlaybackState)
     On Error GoTo UpdateFx_Err
     With GrhData(animationState.CurrentGrh)
+        ' Un FX cuyo Grh es estatico no tiene velocidad. Antes dividia por cero en cada frame y,
+        ' como nunca se detenia, registraba un error por frame mientras el char estuviera en pantalla.
+        If .speed <= 0 Then
+            animationState.CurrentFrame = 1
+            animationState.PlaybackState = Stopped
+            Call AvisarFxSinVelocidad(animationState.Fx, animationState.CurrentGrh)
+            Exit Sub
+        End If
         If (animationState.ElapsedTime >= .speed) Then
             DeltaTime = animationState.ElapsedTime Mod .speed
             If (animationState.CurrentClipLoops = 0) Then
-                PlaybackState = Stopped
+                ' Era "PlaybackState = Stopped": sin Option Explicit creaba una variable local y no detenia nada.
+                animationState.PlaybackState = Stopped
                 Exit Sub
             End If
             animationState.CurrentClipLoops = animationState.CurrentClipLoops - 1
@@ -87,6 +96,14 @@ Sub UpdateFx(ByRef animationState As tAnimationPlaybackState)
 UpdateFx_Err:
     Call RegistrarError(Err.Number, Err.Description, "animations.UpdateFx", Erl)
     Resume Next
+End Sub
+
+' Deja constancia, una sola vez por numero de FX, de que llego un FX cuyo Grh no tiene velocidad.
+Private Sub AvisarFxSinVelocidad(ByVal Fx As Long, ByVal GrhIndex As Long)
+    Static avisados As String
+    If InStr(avisados, "," & Fx & ",") > 0 Then Exit Sub
+    avisados = avisados & "," & Fx & ","
+    Call RegistrarError(0, "FX " & Fx & " usa el Grh " & GrhIndex & " sin velocidad; se detiene sin animar", "animations.UpdateFx")
 End Sub
 
 Sub Initialize(ByRef animationState As tAnimationPlaybackState)
